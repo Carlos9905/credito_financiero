@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.financial_credit</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="40"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"></field>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('settings')]" position="inside">
+                <div class="app_settings_block" data-string="Creditos" string="Créditos" data-key="financial_credit" groups="base.group_system">
+                    <h2>Configuración de Crédito</h2>
+                    <div class ="row mt16 o_settings_container">
+                        <div class = "col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Tipo de mora</span>
+                                <div class="text-muted">
+                                    Tipo de mora para facturación
+                                </div>
+                                <div class="text-muted">
+                                    <field name="tipo_mora" widget="selection"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class = "col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Periodo</span>
+                                <div class="text-muted">
+                                    <field name="periodo" widget="selection"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class = "col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Deuda mayor a</span>
+                                <div class="text-muted">
+                                    No genera mora mientras de deuda sea menor a este valor
+                                </div>
+                                <div class="text-muted">
+                                    <field name="deuda_mayor"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class = "col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label" attrs="{'invisible':[('tipo_mora', '=', 'porcentage')]}">Importe</span>
+                                <div class="text-muted">
+                                    <field name="importe" attrs="{'invisible':[('tipo_mora', '=', 'porcentage')]}"/>
+                                </div>
+                                <span class="o_form_label" attrs="{'invisible':[('tipo_mora', '=', 'importe')]}">Porcentage</span>
+                                <div class="text-muted">
+                                    <field name="porcentaje" widget="percentage" attrs="{'invisible':[('tipo_mora', '=', 'importe')]}"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class = "col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Producto de Mora</span>
+                                <div class="text-muted">
+                                    Producto el cual se ocupa para facturar la mora
+                                </div>
+                                <div class="text-muted">
+                                    <field name="mora_product_id" options="{'no_create': True}" domain="[('type','=','service')]"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class = "col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Producto de Interés</span>
+                                <div class="text-muted">
+                                    Producto el cual se ocupa para facturar el Interés
+                                </div>
+                                <div class="text-muted">
+                                    <field name="interes_product_id" options="{'no_create': True}" domain="[('type','=','service')]"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class = "col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Limite máximo de moras</span>
+                                <div class="text-muted">
+                                    Establezca un limite de mora (el valor 0 quiere decir que no hay limites)
+                                </div>
+                                <div class="text-muted">
+                                    <field name="lim_max_mora"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class = "col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Aprobación de crédito</span>
+                                <div class="text-muted">
+                                    Flujo a seguir cuando el crédito este confirmado
+                                </div>
+                                <div class="text-muted">
+                                    <field name="flujo_credito" widget="selection" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class = "col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Usar lotes/n° serie</span>
+                                <div class="text-muted">
+                                    Para ventas de productos con seguimiento de lotes o número de serie
+                                </div>
+                                <div class="text-muted">
+                                    <field name="module_sale_order_lot_selection"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class = "col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Aprobar y Entregar pedidos</span>
+                                <div class="text-muted">
+                                    Una vez aprobada la venta, tambien entrega el pedido
+                                </div>
+                                <div class="text-muted">
+                                    <field name="aprobar_entregar"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class = "col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Moras automaticas</span>
+                                <div class="text-muted">
+                                    Las moras se genera automaticamente
+                                </div>
+                                <div class="text-muted">
+                                    <field name="moras_automaticas"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class = "col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Buscar cliente por</span>
+                                <div class="text-muted">
+                                    Esta será el tipo de busqueda de un cliente al hacer un pago
+                                </div>
+                                <div class="text-muted">
+                                    <field name="buscar_cliente_por"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class = "col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Tipo de amortización</span>
+                                <div class="text-muted">
+                                    Este es el tipo de tabla de amortización que se generará por defecto, pero se puede cambiar en el formulario
+                                </div>
+                                <div class="text-muted">
+                                    <field name="tipo_amortiazacion"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <h2>Información</h2>
+                    <div class ="row mt16 o_settings_container">
+                        <div class = "col-12 col-lg-6 o_setting_box">
+                            <div class="d-flex">
+                                <a href="https://braintech.odoobt.com" title="BrainTech" class="o_doc_link" target="_blank"></a>
+                                <span style="margin-left:20px">  By BrainTech - Nicaragua</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

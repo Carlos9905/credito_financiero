@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_lineas_credito_tree" model="ir.ui.view">
+        <field name="name">lineas.credito.tree</field>
+        <field name="model">lineas.credito</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="contacto" />
+                <field name="numero" />
+                <field name="interes" sum="Interes"/>
+                <field name="capital" sum="Capital"/>
+                <field name="cuota_inicial" sum="Cuota inicial"/>
+                <field name="payment_state" />
+                <field name="payment_date" />
+                <field name="credito_id" />
+            </tree>
+        </field>
+    </record>
+    <record id="graph_pivot_lineas_credito" model="ir.ui.view">
+        <field name="name">lineas.credito.pivot</field>
+        <field name="model">lineas.credito</field>
+        <field name="arch" type="xml">
+            <pivot string="Reporte" sample="1">
+                <field name="contacto" type="row"/>
+                <field name="payment_state" string="Estado" type="row"/>
+                <!-- <field name="cuota_inicial" type="measure"/>-->
+            </pivot>
+        </field>
+    </record>
+    <record id="view_lineas_credito_search" model="ir.ui.view">
+        <field name="name">lineas.credito.search</field>
+        <field name="model">lineas.credito</field>
+        <field name="arch" type="xml">
+            <search string="Reporte">                
+                <field name="contacto"/>
+                <field name="credito_id"/>
+                <field name="payment_state"/>
+                <filter string="Pagos pendiente" name="pendientes" domain="[('payment_state', '=','pendiente')]"/>
+                <filter string="Pagos atrasados" name="atrasados" domain="[('payment_state', '=','mora')]" help="Creado Hoy"/>
+                <group expand="0" string="Group By">
+                    <filter string="Estado de pago" name="estado" context="{'group_by': 'payment_state'}"/>
+                    <filter string="Cliente" name="cliente" context="{'group_by':'contacto'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>

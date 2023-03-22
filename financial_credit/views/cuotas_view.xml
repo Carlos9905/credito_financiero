@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_tree_cuotas_credito_ui" model="ir.ui.view">
+        <field name="name">cuotas.credito.tree</field>
+        <field name="model">cuotas.credito</field>
+        <field name="arch" type="xml">
+            <tree string="Cuotas de crédito" editable="bottom">
+                <field name="nombre" required="1"/>
+                <field name="numero" width="300px" required="1"/>
+            </tree>
+        </field>
+    </record>
+</odoo>

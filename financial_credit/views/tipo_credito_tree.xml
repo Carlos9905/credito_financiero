@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_tipo_credito_tree" model="ir.ui.view">
+        <field name="name">tipo.credito.tree</field>
+        <field name="model">tipo.credito</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <tree string="Tipos de Créditos" editable="bottom">
+                <field name="currency_id" invisible="1"/>
+                <field name="name" required="1"/>
+                <field name="interes" width="200px" widget="percentage" required="1"/>
+                <field name="max_financiar" width="200px" required="1" widget="percentage"/>
+            </tree>
+        </field>
+    </record>
+</odoo>

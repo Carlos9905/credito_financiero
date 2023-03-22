@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Vista Pivot-->
+    <record id="graph_pivot_account_payments" model="ir.ui.view">
+        <field name="name">account.paymente.pivot</field>
+        <field name="model">account.payment</field>
+        <field name="arch" type="xml">
+            <pivot string="Pagos Contables" sample="1">
+                <field name="date" type="row"/>
+                <field name="create_uid" string="Vendedor" type="row"/>
+                <field name="amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+</odoo>

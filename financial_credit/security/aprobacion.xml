@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="base.module_category_credito" model="ir.module.category">
+        <field name="description">Roles de usuarios para gestión del crédito financiero</field>
+        <field name="sequence">1</field>
+    </record>
+
+    <data>
+        <record id="view_aprobacion_field" model="res.groups">
+            <field name="name">Aprobar Créditos</field>
+            <field name="users" eval="[(4, ref('base.user_root'))]"/>
+            <field name="category_id" ref="base.module_category_credito"/>
+        </record>
+    </data>
+    <data>
+        <record id="view_configuracion_field" model="res.groups">
+            <field name="name">Admin. de créditos</field>
+            <field name="users" eval="[(4, ref('base.user_root'))]"/>
+            <field name="category_id" ref="base.module_category_credito"/>
+        </record>
+    </data>
+    <data>
+        <record id="view_reprogramar_field" model="res.groups">
+            <field name="name">Reprogramar Cuotas</field>
+            <field name="users" eval="[(4, ref('base.user_root'))]"/>
+            <field name="category_id" ref="base.module_category_credito"/>
+        </record>
+    </data>
+
+    <record id="documento_usuarios" model="res.groups">
+        <field name="name">Usuarios: Solo ver mis propios documentos</field>
+        <field name="category_id" ref="base.module_category_credito"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">the user will have access to his own data in the sales application.</field>
+    </record>
+
+    <record id="only_owners_record_credit_group" model="ir.rule">
+        <field name="name">Solo los documentos propios</field>
+        <field name="model_id" ref="model_financial_credit"/>
+        <field name="domain_force">[('vendedor','=',user.id)]</field>
+        <field name="groups" eval="[(4,ref('financial_credit.documento_usuarios'))]"/>
+    </record>
+</odoo>

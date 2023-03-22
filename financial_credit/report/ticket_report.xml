@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <template id="reporte_payment_credit">
+    <t t-call="web.html_container">
+      <t t-foreach="docs" t-as="o">
+        <t t-call="web.basic_layout">
+          <div class="page">
+            <center>
+              <img t-if="o.company_id.logo" t-att-src="image_data_uri(o.company_id.logo)" style="max-width:50%" alt="Company Logo"/>
+            </center>
+            <br/>
+            <div class="text-right">
+              <strong class="text-right" style="font-size: 18px"> N° Recibo </strong>
+              <br/>
+              <h3 class="text-right" style="font-size: 18px">
+                <span t-field="o.number"/>
+              </h3>
+            </div>
+
+            <div class="row mt32 mb32">
+              <table style="width:100%;font-size: 17px" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td col="2">
+                    <strong>Fecha: </strong>
+                    <span t-field="o.fecha" t-options="{&quot;format&quot;: &quot;dd/MM/yy&quot;}"/>
+                  </td>
+                </tr>
+                <tr>
+                  <td col="2">
+                    <strong>Cliente: </strong>
+                    <span t-field="o.cliente_id"/>
+                  </td>
+                </tr>
+                <tr>
+                  <td col="2">
+                    <strong>Teléfono: </strong>
+                    <span t-field="o.telefono"/>
+                  </td>
+                </tr>
+                <tr>
+                  <td col="2">
+                    <strong>Crédito: </strong>
+                    <span t-field="o.credit_id"/>
+                  </td>
+                </tr>
+                <tr>
+                  <td col="2">
+                    <strong>Número cuotas: </strong>
+                    <span t-field="o.credit_id.cuota_id.numero"/>
+                  </td>
+                </tr>
+                <tr>
+                  <td col="2">
+                    <strong>Cuota fija: </strong>
+                    <span t-esc="'{0:,.2f}'.format(o.cuota_fija)"/>
+                  </td>
+                </tr>
+                <tr>
+                  <td col="2">
+                    <strong>Deuda total: </strong>
+                    <span t-esc="'{0:,.2f}'.format(o.total_pagar)"/>
+                  </td>
+                </tr>
+                <tr>
+                  <td col="2">
+                    <strong>Vendedor: </strong>
+                    <span t-field="o.user_id"/>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <br/>
+
+            <center>
+              <strong class="text-center">Cuotas pagadas</strong>
+            </center>
+            <hr style="height: 1px;background-color: black;"/>
+
+            <table style="font-size:17px" class="table table-sm text-center" name="cuotas_pagadas_table">
+              <thead>
+                <tr>
+                  <th>
+                    <strong>N° Cuota</strong>
+                  </th>
+                  <th>
+                    <strong>Monto pagado</strong>
+                  </th>
+                  <th>
+                    <strong>Fecha pagada</strong>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <t t-set="lines" t-value="o.credit_id.lineas_pagos_ids.filtered(lambda x: x.payment_date == o.fecha)"/>
+                <t t-foreach="lines" t-as="move">
+                  <tr>
+                    <td>
+                      <span t-field="move.numero"/>
+                    </td>
+                    <td>
+                      <span t-field="move.payment_amount"/>
+                    </td>
+                    <td>
+                      <span t-field="move.payment_date"/>
+                    </td>
+                  </tr>
+                </t>
+              </tbody>
+
+            </table>
+
+            <center>
+              <strong class="text-center">Cuotas pendientes</strong>
+            </center>
+            <hr style="height: 1px;background-color: black;"/>
+
+            <table style="font-size:17px" class="table table-sm text-center" name="cuotas_pendiente_table">
+              <thead>
+                <tr>
+                  <th name="th_sm_product">
+                    <strong>N°</strong>
+                  </th>
+                  <th name="th_sm_quantity">
+                    <strong>Cuota</strong>
+                  </th>
+                  <th name="th_sm_quantity">
+                    <strong>Fecha esperada</strong>
+                  </th>
+                </tr>
+              </thead>
+              <tbody style="margin-left: 0px;">
+                <t t-set="lines" t-value="o.credit_id.lineas_pagos_ids.filtered(lambda x: x.payment_state in ['pendiente','pago_par'])"/>
+                <t t-foreach="lines" t-as="move">
+                  <tr>
+                    <td>
+                      <span t-field="move.numero"/>
+                    </td>
+                    <td>
+                      <span t-field="o.currency_id.symbol"/><span t-esc="'{0:,.2f}'.format(move.cuota_fija)"/>
+                    </td>
+                    <td>
+                      <span t-field="move.fecha_pago"/>
+                    </td>
+                  </tr>
+                </t>
+              </tbody>
+            </table>
+
+            <div class="mt64">
+              <div class="col-12 text-center">
+                <strong style="font-size: 110%;">Total pagado: </strong>
+              </div>
+              <div class="col-12 text-center">
+                <span style="font-size: 115%;" t-field="o.currency_id.symbol"/>
+                <span style="font-size: 115%;" t-field="o.monto"/>
+              </div>
+            </div>
+            <br/>
+            <br/>
+            <div class="mt64">
+              <div class="col-12 text-center">
+                                ____________________________________<br/>
+              <strong style="font-size: 110%;">Firma</strong>
+            </div>
+          </div>
+          <div class = "footer">
+            <div class="text-center">
+              <div>
+                <span t-field="o.company_id.website"/>
+              </div>
+              <div>
+                <span>TEL:.</span><span t-field="o.company_id.phone"/>
+              </div>
+            </div>
+          </div>
+        </div>
+      </t>
+    </t>
+  </t>
+</template>
+</odoo>

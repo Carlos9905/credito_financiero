@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Vista de arbol-->
+    <record id="view_financial_credit_tree" model="ir.ui.view">
+        <field name="name">financial.credit.tree</field>
+        <field name="model">financial.credit</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <tree string = "Ordenes de Crédito" sample="1" decoration-info="state == 'borrador'" decoration-success="state=='aprobado'" decoration-primary="state =='factura'" decoration-warning="state =='solicitud'" decoration-danger="state =='rechazado'">
+                <field name="tipo_doc" invisible="1"/>
+                <field name="numero" decoration-bf="1"/>
+                <field name="fecha" widget="date"/>
+                <field name="currency_id" invisible="1"/>
+                <field name="cliente_id"/>
+                <field name="producto_id"/>
+                <field name="deuda_total" sum="Total" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                <field name="vendedor" widget="many2one_avatar_user"/>
+                <field name="frecuencia_pago" widget="badge"/>
+                <field name="state" widget="badge" attrs="{'invisible':[('tipo_doc', '=','cal')]}"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vista de formulario-->
+    <record id="view_financial_credit_form" model="ir.ui.view">
+        <field name="name">financial.credit.form</field>
+        <field name="model">financial.credit</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <form duplicate="false">
+                <header>
+                    <button name="action_solicitud" type="object" 
+                        string="Soliciar aprobación" class="btn btn-warning" attrs="{'invisible':[('habiliar_solicitud', '!=', True)]}"/>
+
+                    <button name="action_aprobado" type="object" 
+                        string="Aprobar solicitud" class="btn btn-success" 
+                        attrs="{'invisible':[('state', '!=', 'solicitud')]}" groups="financial_credit.view_aprobacion_field"/>
+                    
+                    <button name="action_rechazar" type="object" 
+                        string="Rechazar solicitud" class="btn btn-danger" 
+                        attrs="{'invisible':[('state', '!=', 'solicitud')]}" groups="financial_credit.view_aprobacion_field" 
+                        confirm="¿Está seguro que quiere rechazar esta solicitud?"/>
+                    
+                    <button name="action_reestablecer" type="object" 
+                        string="Reestabler Solicitud" class="btn btn-warning" 
+                        attrs="{'invisible':[('state', 'not in', ('aprobado','rechazado'))]}" groups="financial_credit.view_aprobacion_field" 
+                        confirm="¿Está seguro que quiere regresar a estado de borrador este documento?"/>
+
+                    <button name="action_factura" type="object" string="Crear Factura" class="btn btn-primary" attrs="{'invisible':[('state', '!=', 'aprobado')]}"/>
+                    <button name="crear_pago" type="object" string="Registrar pago" class="btn btn-primary" attrs="{'invisible':[('state', '!=', 'pendiente')]}"/>
+                    
+                    <button name="reprogramar_cuotas" type="object" string="Reprogramar cuotas" class="btn-primary" groups="financial_credit.view_reprogramar_field"/>
+
+                    <button name="ver_facturas" type="object" string="Ver Facturas" class="btn-primary" attrs="{'invisible':[('state', 'in', ['pendiente','aprobado','borrador','solicitud','rechazado'])]}"/>
+                    <field name="state" widget="statusbar" clickable="False" statusbar_visible="borrador,solicitud,aprobado,pendiente,pagado,rechazado" attrs="{'invisible':[('tipo_doc','!=','ven')]}"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Pagado" attrs="{'invisible':[('state', '!=', 'pagado')]}"/>
+                    <div class="oe_button_box">
+                        <button name="ver_pagos" type="object" class="oe_stat_button" icon="fa-credit-card-alt  icon" attrs="{'invisible':['|',('tipo_doc','!=','ven'),('state','!=','pendiente')]}">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="numero_pagos" nolabel="1"/>
+                                </span>
+                                <span class="o_stat_text">Pagos Pend.</span>
+                            </div>
+                        </button>
+                        <button name="ver_facturas" type="object" class="oe_stat_button" icon="fa-pencil-square-o" attrs="{'invisible': [('state','!=','pendiente')]}">
+                            <field name="numero_facturas" widget="statinfo" string="Facturas"/>
+                        </button>
+                    </div>
+                    <div class = "oe_title">
+                        <h2>
+                            <field name="numero"/>
+                        </h2>
+                    </div>
+                    <group>
+                        <group string = "Informacion del producto">
+                            <field name="tipo_doc" invisible="1"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="venta_servicio" invisible="1"/>
+                            <field name="habiliar_solicitud" invisible="1"/>
+                            <field name="producto_id" attrs="{'readonly':['|',('state', 'not in', ['aprobado', 'borrador']),('tipo_doc', '=', 'ven')]}" required="1"/>
+                            <field name="descripcion" attrs="{'readonly':[('state', 'not in', ['aprobado', 'borrador'])]}"/>
+                            <field name="numero_serie" attrs="{'readonly':[('tipo_doc', '=', 'ven')],'invisible':[('venta_servicio','=',True)]}"/>
+                            <field name="monto" attrs="{'readonly':[('state', 'not in', ['aprobado', 'borrador'])], 'invisible':[('venta_servicio','!=',True)]}" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                            <field name="precio" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                            <field name="interes_mensual" widget="percentage"/>
+                            <field name="total" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                            <field name="total_interes" widget='monetary' options="{'currency_field': 'currency_id'}"/> <!-- Interes a pagar-->
+                            <field name="deuda_total" widget='monetary' options="{'currency_field': 'currency_id'}"/> <!-- Deuda Total-->
+                            <field name="cuota_fija" widget='monetary' options="{'currency_field': 'currency_id'}"/><!-- Cuota-->
+                            <field name="autorizado" />
+                            <field name="sale_id" readonly="1"/>
+                        </group>
+                        <group string="Informacion de la venta">
+                            <field name="fecha" attrs="{'readonly':[('state', 'not in', ['aprobado', 'borrador'])]}"/>
+                            <field name="telefono" attrs="{'readonly':[('state', 'not in', ['aprobado', 'borrador'])], 'required':[('tipo_doc','=','ven')]}"/>
+                            <field name="cliente_id" attrs="{'readonly':['|',('state', '=', 'aprobado'),('tipo_doc', '=', 'ven')], 'required':[('tipo_doc','=','ven')]}"/>
+                            <field name="tipo_amortiazacion" attrs="{'readonly':['|',('state', '=', 'aprobado'),('tipo_doc', '=', 'ven')]}" required="1"/>
+                            <field name="frecuencia_pago" widget="selection" required="1" attrs="{'readonly':[('state', 'not in', ['aprobado', 'borrador'])]}" options="{'no_quick_create': True, 'no_create_edit' : True}"/>
+                            <field name="cuota_id" attrs="{'readonly':[('state', 'not in', ['aprobado', 'borrador'])]}" options="{'no_open': True, 'no_create_edit': True, 'no_create': True}" required="1"/>
+                            <field name="tipo_credito_id" options="{'no_open': True, 'no_create_edit': True, 'no_create': True}" attrs="{'readonly':[('state', 'not in', ['aprobado', 'borrador'])]}" required="1"/>
+                            <field name="max_financiar" widget="percentage"/>
+                            <field name="monto_minimo_obli" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                            <field name="monto_inicial" widget='monetary' options="{'currency_field': 'currency_id'}" attrs="{'readonly':[('state', 'not in', ['aprobado', 'borrador'])]}" required="1"/>
+                            <field name="vendedor"/>
+                            <field name="journals_id" options="{'no_open': True, 'no_create_edit': True, 'no_create': True}" attrs="{'readonly':[('state', 'not in', ['aprobado', 'borrador'])]}" domain="[('type', 'in',['bank','cash'])]" required="1"/>
+                            <button name="action_generate_table" type="object" string="Calcular" class="btn btn-primary" style="width:100%" attrs="{'invisible':[('state', '!=', 'borrador')]}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Tabla de amortización">
+                            <field name="lineas_pagos_ids" readonly="1" deletable="false">
+                                <tree>
+                                    <field name="numero" />
+                                    <field name="contacto"/>
+                                    <field name="cuota_inicial" width="170px" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                    <field name="cuota_fija" sum="Deuda" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                    <field name="capital" sum="Capital" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                    <field name="interes" sum="Interés" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                    <field name="fecha_pago"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Documentos del cliente">
+                            <field name="documentos_ids">
+                                <tree create="true" delete="true" edit="true" editable="bottom">
+                                    <field name="name" />
+                                    <field name="archivo"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Notas">
+                            <group string= "Notas">
+                                <field name="notas" placeholder="Escribe tus notas aquí (opcional)" nolabel="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Vista Kanban-->
+    <record id="view_financial_credit_kanban" model="ir.ui.view">
+        <field name="name">financial.credit.kanban</field>
+        <field name="model">financial.credit</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" sample="1">
+                <field name="numero"/>
+                <field name="fecha"/>
+                <field name="cliente_id"/>
+                <field name="producto_id"/>
+                <field name="currency_id"/>
+                <field name="vendedor"/>
+                <field name="precio"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_card oe_kanban_global_click">
+                            <div class="o_kanban_record_top mb16">
+                                <div class="o_kanban_record_headings mt4">
+                                    <strong class="o_kanban_record_title"><span><t t-esc="record.cliente_id.value"/></span></strong>
+                                </div>
+                                <strong>Precio: <field name="precio" widget="monetary"/></strong>
+                            </div>
+                            <div class= "oe_kanban_details">
+                                <field name="fecha" widget="date"/>
+                                <span class = "float-right">
+                                    <field name="cliente_id"/>
+                                </span>
+                            </div>
+                            <div class="oe_kanban_bottom_right">
+                                <field name="state" widget="label_selection" options="{'classes': {'borrador': 'primary', 'solicitud':'warning','rechazado': 'danger', 'aprobado': 'success'}}"/>
+                                <span class = "float-right">
+                                    <field name="vendedor"/>
+                                </span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Vista De Busqueda-->
+    <record id="view_financial_credit_search" model="ir.ui.view">
+        <field name="name">financial.credit.search</field>
+        <field name="model">financial.credit</field>
+        <field name="arch" type="xml">
+            <search string="Orden de Crédito">                
+                <field name="numero"/>
+                <field name="vendedor"/>
+                <field name="state"/>
+                <filter string="Mis documentos de crédito" name="mis_documenos_creditos" domain="[('vendedor', '=',uid)]"/>
+                <filter string="Hoy" name="hoy" domain="[('fecha','&lt;=', (datetime.date.today()).strftime('%Y-%m-%d')),('fecha','&gt;=',(datetime.date.today()).strftime('%Y-%m-%d'))]" help="Creado Hoy"/>
+                <group expand="0" string="Group By">
+                    <filter string="Estado del documento" name="estado" context="{'group_by': 'state'}"/>
+                    <filter string="Vendedor" name="vendedor" context="{'group_by':'vendedor'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>

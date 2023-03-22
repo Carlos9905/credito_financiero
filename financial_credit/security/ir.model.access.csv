@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_financial_credit_user,financial_credit.financial.credit,model_financial_credit,base.group_user,1,1,1,1
+access_tipo_credito_user,financial_credit.tipo.credito,model_tipo_credito,base.group_user,1,1,1,1
+access_lineas_credito_user,financial_credit.lineas.credito,model_lineas_credito,base.group_user,1,1,1,1
+access_cuotas_credito_user,financial_credit.cuotas.credito,model_cuotas_credito,base.group_user,1,1,1,1
+access_frecuencia_credito_user,financial_credit.frecuencia.credito,model_frecuencia_credito,base.group_user,1,1,1,1
+access_payment_credit_user,undefined.payment.credit,model_payment_credit,base.group_user,1,1,1,1
+access_documents_credit_user,financial_credit.documents.credit,model_documents_credit,base.group_user,1,1,1,1
+access_wizard_reprogramar_cuotas_user,financial_credit.wizard.reprogramar.cuotas,model_wizard_reprogramar_cuotas,base.group_user,1,1,1,1

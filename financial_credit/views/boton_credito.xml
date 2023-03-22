@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+    <record id="sale_order_extend_form" model="ir.ui.view">
+        <field name="name">sale.order.form</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="after">
+                <field name="estado_solicitud" invisible="1"/>
+                <div class="alert alert-info" role="alert" attrs="{'invisible':[('estado_solicitud', '!=', 'pendiente')]}">
+                    <strong>Pendiente de aprobación</strong>
+                </div>
+                <div class="alert alert-danger" role="alert" attrs="{'invisible':[('estado_solicitud', '!=', 'rechazado')]}">
+                    <strong>Crédito Rechazado</strong>
+                </div>
+                <div class="alert alert-info" role="alert" attrs="{'invisible':[('estado_solicitud', '!=', 'pagos_pend')]}">
+                    <strong>Pagos pendientes</strong>
+                </div>
+                <div class="alert alert-info" role="alert" attrs="{'invisible':[('estado_solicitud', '!=', 'pagado')]}">
+                    <strong>Pagado</strong>
+                </div>
+            </xpath>
+            <button name="preview_sale_order" position="after">
+            	<field name="es_contado" invisible="1"/>
+                <button class="oe_stat_button" name="ver_boton_credito" type="object" icon="fa-usd" attrs="{'invisible':[('es_contado', '=', True)]}">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="cuenta_financial_credit" nolabel="1"/>
+                        </span>
+                        <span class="o_stat_text">
+                            Crédito
+                        </span>
+                    </div>
+                </button>
+            </button>
+        </field>
+    </record>
+</odoo>

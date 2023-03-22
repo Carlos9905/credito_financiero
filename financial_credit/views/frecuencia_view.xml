@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_tree_frecuencia_credito_ui" model="ir.ui.view">
+        <field name="name">frecuencia.credito.tree</field>
+        <field name="model">frecuencia.credito</field>
+        <field name="arch" type="xml">
+            <tree string="Frecuencias de crédito" editable="bottom">
+                <field name="nombre" required="1"/>
+                <field name="tipo_frecuencia" required="1" widget="selection"/>
+                <field name="descripcion"/>
+                <field name="cuotas_ids" widget="many2many_tags" options="{'no_quick_create': True, 'no_create_edit' : True}" required="1"/>
+            </tree>
+        </field>
+    </record>
+</odoo>

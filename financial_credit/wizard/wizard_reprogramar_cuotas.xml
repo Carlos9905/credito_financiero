@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="reprogramar_cuotas_wizard_view" model="ir.ui.view">
+        <field name="name">Reprogramar cuotas</field>
+        <field name="model">wizard.reprogramar.cuotas</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="fecha"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="reprogramar" type="object" string="Reprogramar" class="btn-primary"/>
+                    <button special="cancel" string="Cancelar"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

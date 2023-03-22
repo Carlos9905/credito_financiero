@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Creditos-->
+    <record id="menu_action_financial_credit" model="ir.actions.act_window">
+        <field name="name">Crédito</field>
+        <field name="res_model">financial.credit</field>
+        <field name="view_mode">tree,form,kanban</field>
+        <field name="search_view_id" ref="financial_credit.view_financial_credit_search"/>
+        <field name="domain">[('tipo_doc', '=','ven')]</field>
+        <field name="context">{'search_default_mis_documenos_creditos': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Ordenes de crédito
+            </p><p>
+                Crea tus ordenes de crédito desde aqui
+            </p>
+        </field>
+    </record>
+    <!-- Calculadora-->
+    <record id="menu_action_financial_credit_calculadora" model="ir.actions.act_window">
+        <field name="name">Calculadora</field>
+        <field name="res_model">financial.credit</field>
+        <field name="view_mode">tree,form,kanban</field>
+        <field name="search_view_id" ref="financial_credit.view_financial_credit_search"/>
+        <field name="domain">[('tipo_doc', '=','cal')]</field>
+        <field name="context">{'search_default_mis_documenos_creditos': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Ofertas de créditos
+            </p><p>
+                Crea tus ofertas de crédito desde aqui
+            </p>
+        </field>
+    </record>
+
+    <!-- Configuracion cuotas-->
+    <record id="menu_action_cuotas_credito" model="ir.actions.act_window">
+        <field name="name">Cuotas</field>
+        <field name="res_model">cuotas.credito</field>
+        <field name="view_mode">tree</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Haz Click en en botón "Crear" para agregar cuotas
+            </p><p>
+                Estas son el numero de cuotas que el cliente puede optar, en la frecuencia de pago es necesario agregar las cuotas permitidas
+            </p>
+        </field>
+    </record>
+
+    <!-- Configuarcion Frecuencias-->
+    <record id="menu_action_frecuencia_credito" model="ir.actions.act_window">
+        <field name="name">Frecuencias</field>
+        <field name="res_model">frecuencia.credito</field>
+        <field name="view_mode">tree</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Haz Click en en botón "Crear" para agregar las frecuencias
+            </p><p>
+                Estas son las frecuencias de pago
+            </p>
+        </field>
+    </record>
+
+    <!-- Configuración Tipo credito-->
+    <record id="menu_action_tipo_credito" model="ir.actions.act_window">
+        <field name="name">Tipos de Créditos</field>
+        <field name="res_model">tipo.credito</field>
+        <field name="view_mode">tree</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Haz Click en en botón "Crear" para agregar los tipos de créditos
+            </p><p>
+                Aqui se definen el porcentaje de interes entre otros parametros
+            </p>
+        </field>
+    </record>
+
+    <!-- Pagos-->
+    <record id="menu_action_payment_credit" model="ir.actions.act_window">
+        <field name="name">Pagos</field>
+        <field name="res_model">payment.credit</field>
+        <field name="view_mode">tree,form,kanban</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Haz Click en en botón "Crear" para agregar pagos
+            </p><p>
+                Estos son los pagos de los créditos
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu grafica de pagos-->
+    <record id="graph_manu_account_payments" model="ir.actions.act_window">
+        <field name="name">Pagos contables</field>
+        <field name="res_model">account.payment</field>
+        <field name="view_mode">pivot,tree</field>
+    </record>
+
+    <!-- Ajustes-->
+    <record id="action_custom_config_settings" model="ir.actions.act_window">
+        <field name="name">Crédito</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_id" ref="res_config_settings_view_form"></field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+        <field name="context">{'module' : 'financial_credit', 'bin_size': False}</field>
+    </record>
+    <!-- Reporte-->
+    <record id="menu_action_lineas_credito" model="ir.actions.act_window">
+        <field name="name">Reporte</field>
+        <field name="res_model">lineas.credito</field>
+        <field name="domain">[('payment_state', 'in', ['pagado','pago_par','pendiente','mora','retrasado'])]</field>
+        <field name="view_mode">pivot,tree</field>
+    </record>
+
+    <!-- Root-->
+    <menuitem id="menu_financial_credit_root" 
+        name="Crédito Financiero" web_icon="financial_credit,static/description/icon.png"/>
+
+    <!-- Menus Root-->
+    <menuitem id="menu_configuracion_main" 
+        name="Configuración" parent="menu_financial_credit_root" sequence="10"/>
+    <menuitem id="menu_reportes_root" 
+        name="Reportes" parent="menu_financial_credit_root" sequence="3"/>
+    <menuitem id="menu_pagos_main" 
+        name="Pagos" parent="menu_financial_credit_root" sequence="2"/>
+    
+    <!-- Informes-->
+    <menuitem id="menu_reporte_main" 
+        name="Informe" parent="menu_reportes_root" action="menu_action_lineas_credito" sequence="1"/>
+    
+    <menuitem id="menu_credit_main" 
+        name="Crédito" parent="menu_financial_credit_root" sequence="1"/>
+
+    <!-- Separadores de configuracion-->
+    <menuitem id="menu_configuracion_ajustes"
+        name="Ajustes" parent="menu_configuracion_main" sequence="1" groups="base.group_system"/>
+    <menuitem id="menu_configuracion_general" 
+        name="General" parent="menu_configuracion_main" sequence="2" groups="financial_credit.view_configuracion_field"/>
+
+    <!-- Credito-->
+    <menuitem id="submenu_financial_credit" 
+        name="Créditos" parent="menu_credit_main" action="menu_action_financial_credit" sequence="1"/>
+    <menuitem id="submenu_calculadora_financial_credit" 
+        name="Calculadora" parent="menu_credit_main" action="menu_action_financial_credit_calculadora" sequence="2"/>
+    
+    <!-- Pagos-->
+    <menuitem id="submenu_payment_credit" name="Pagos" 
+        parent="menu_pagos_main" action="menu_action_payment_credit" sequence="1"/>
+    <menuitem id="submenu_account_payment_credit" name="Pagos Contables" 
+        parent="menu_pagos_main" action="graph_manu_account_payments" sequence="2"/>
+    
+    <!-- General configuracion-->
+    <menuitem id="submenu_tipo_credito" name="Tipos de Créditos" 
+        parent="menu_configuracion_general" action="menu_action_tipo_credito" sequence="1"/>
+    <menuitem id="submenu_cuotas_credito" name="Cuotas" 
+        parent="menu_configuracion_general" action="menu_action_cuotas_credito" sequence="2"/>
+    <menuitem id="submenu_frecuencia_credito" name="Frecuencias" 
+        parent="menu_configuracion_general" action="menu_action_frecuencia_credito" sequence="3"/>
+
+    <!-- Ajustes del módulo-->
+    <menuitem id="configuration_menu_root" parent="menu_configuracion_ajustes" 
+        name="Ajustes" action="action_custom_config_settings"/>
+</odoo>
