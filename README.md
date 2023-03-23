@@ -1,4 +1,4 @@
-# Crédito financiero
+# Crédito financiero v15.0
 
 Este módulo es una versión modificada del módulo crédito original que se encuentra en https://github.com/Carlos9905/credito.git. Ofrece una solución completa para gestionar las órdenes de crédito en el sistema Odoo.
 
