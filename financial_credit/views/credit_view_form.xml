@@ -80,10 +80,10 @@
                             <field name="currency_id" invisible="1"/>
                             <field name="venta_servicio" invisible="1"/>
                             <field name="habiliar_solicitud" invisible="1"/>
-                            <field name="producto_id" attrs="{'readonly':['|',('state', 'not in', ['aprobado', 'borrador']),('tipo_doc', '=', 'ven')]}" required="1"/>
-                            <field name="descripcion" attrs="{'readonly':[('state', 'not in', ['aprobado', 'borrador'])]}"/>
+                            <field name="producto_id" attrs="{'readonly':[('state', 'not in', ['borrador'])]}" required="1"/>
+                            <field name="descripcion" attrs="{'readonly':[('state', 'not in', ['borrador'])]}"/>
                             <field name="numero_serie" attrs="{'readonly':[('tipo_doc', '=', 'ven')],'invisible':[('venta_servicio','=',True)]}"/>
-                            <field name="monto" attrs="{'readonly':[('state', 'not in', ['aprobado', 'borrador'])], 'invisible':[('venta_servicio','!=',True)]}" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                            <field name="monto" attrs="{'readonly':[('state', 'not in', ['borrador'])], 'invisible':[('venta_servicio','!=',True)]}" widget='monetary' options="{'currency_field': 'currency_id'}"/>
                             <field name="precio" widget='monetary' options="{'currency_field': 'currency_id'}"/>
                             <field name="interes_mensual" widget="percentage"/>
                             <field name="total" widget='monetary' options="{'currency_field': 'currency_id'}"/>
@@ -94,18 +94,18 @@
                             <field name="sale_id" readonly="1"/>
                         </group>
                         <group string="Informacion de la venta">
-                            <field name="fecha" attrs="{'readonly':[('state', 'not in', ['aprobado', 'borrador'])]}"/>
-                            <field name="telefono" attrs="{'readonly':[('state', 'not in', ['aprobado', 'borrador'])], 'required':[('tipo_doc','=','ven')]}"/>
-                            <field name="cliente_id" attrs="{'readonly':['|',('state', '=', 'aprobado'),('tipo_doc', '=', 'ven')], 'required':[('tipo_doc','=','ven')]}"/>
+                            <field name="fecha" attrs="{'readonly':[('state', 'not in', ['borrador'])]}"/>
+                            <field name="telefono" attrs="{'readonly':[('state', 'not in', ['borrador'])], 'required':[('tipo_doc','=','ven')]}"/>
+                            <field name="cliente_id" attrs="{'readonly':[('state', 'not in', ['borrador'])], 'required':[('tipo_doc','=','ven')]}"/>
                             <field name="tipo_amortiazacion" attrs="{'readonly':['|',('state', '=', 'aprobado'),('tipo_doc', '=', 'ven')]}" required="1"/>
-                            <field name="frecuencia_pago" widget="selection" required="1" attrs="{'readonly':[('state', 'not in', ['aprobado', 'borrador'])]}" options="{'no_quick_create': True, 'no_create_edit' : True}"/>
-                            <field name="cuota_id" attrs="{'readonly':[('state', 'not in', ['aprobado', 'borrador'])]}" options="{'no_open': True, 'no_create_edit': True, 'no_create': True}" required="1"/>
-                            <field name="tipo_credito_id" options="{'no_open': True, 'no_create_edit': True, 'no_create': True}" attrs="{'readonly':[('state', 'not in', ['aprobado', 'borrador'])]}" required="1"/>
+                            <field name="frecuencia_pago" widget="selection" required="1" attrs="{'readonly':[('state', 'not in', ['borrador'])]}" options="{'no_quick_create': True, 'no_create_edit' : True}"/>
+                            <field name="cuota_id" attrs="{'readonly':[('state', 'not in', ['borrador'])]}" options="{'no_open': True, 'no_create_edit': True, 'no_create': True}" required="1"/>
+                            <field name="tipo_credito_id" options="{'no_open': True, 'no_create_edit': True, 'no_create': True}" attrs="{'readonly':[('state', 'not in', ['borrador'])]}" required="1"/>
                             <field name="max_financiar" widget="percentage"/>
                             <field name="monto_minimo_obli" widget='monetary' options="{'currency_field': 'currency_id'}"/>
-                            <field name="monto_inicial" widget='monetary' options="{'currency_field': 'currency_id'}" attrs="{'readonly':[('state', 'not in', ['aprobado', 'borrador'])]}" required="1"/>
+                            <field name="monto_inicial" widget='monetary' options="{'currency_field': 'currency_id'}" attrs="{'readonly':[('state', 'not in', ['borrador'])]}" required="1"/>
                             <field name="vendedor"/>
-                            <field name="journals_id" options="{'no_open': True, 'no_create_edit': True, 'no_create': True}" attrs="{'readonly':[('state', 'not in', ['aprobado', 'borrador'])]}" domain="[('type', 'in',['bank','cash'])]" required="1"/>
+                            <field name="journals_id" options="{'no_open': True, 'no_create_edit': True, 'no_create': True}" attrs="{'readonly':[('state', 'not in', ['borrador'])]}" domain="[('type', 'in',['bank','cash'])]" required="1"/>
                             <button name="action_generate_table" type="object" string="Calcular" class="btn btn-primary" style="width:100%" attrs="{'invisible':[('state', '!=', 'borrador')]}"/>
                         </group>
                     </group>

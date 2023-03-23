@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="action_report_financial_credit" model="ir.actions.report">
+        <field name="name">Contrato</field>
+        <field name="model">financial.credit</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">financial_credit.reporte_financial_credit</field>
+        <field name="print_report_name">'Contrato - '+object.numero+'.pdf'</field>
+        <field name="binding_model_id" ref="model_financial_credit" />
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="base.paperformat_us"/>
+    </record>
+
+    <template id="reporte_financial_credit">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <t t-foreach="docs" t-as="o">
+                    <div class="page">
+                        <div class = "text-right" name = "fecha">
+                            <span>Guatemala, </span><span t-esc="o.fecha.strftime('%d %B %Y')" /><br/>
+                            <span>Código:&#160;&#160;<strong><span t-field="o.numero"/></strong></span>
+                        </div>
+                        <div name="cabecera">
+                            <span>Señor /ra:</span><br/>
+                            <strong style="margin-left:100px"><span t-field="o.cliente_id"/></strong> <br/>
+                            <span>Presente.</span>
+                            <p>
+                                &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; Por este medio se le informa que se le ha autorizado el préstamo solicitado por el monto de <strong><span t-field="o.total" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></strong>
+                                sobre una tasa de interés del <strong><span t-esc="o.tipo_credito_id.interes * 100"/>&#37;
+                                ( <span t-esc="(o.currency_id.amount_to_text(o.tipo_credito_id.interes * 100)).replace('Quetzales', 'porciento')"/> )</strong>
+                                sobre la deuda total debiendo pagar un total de <strong><span t-field="o.deuda_total" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></strong> esto en un lapso de&#160;&#160;&#160;<strong><span t-field="o.cuota_id.numero"/> cuotas</strong>
+                                &#160;<span t-field="o.frecuencia_pago.tipo_frecuencia"/> detalladas a continuación:
+                            </p>
+
+                            <div style="font-size:12px">
+                                <table class="table table-sm table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>N°</th>
+                                            <th>Fecha de pago</th>
+                                            <th>Capital</th>
+                                            <th>Interés</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="o.lineas_pagos_ids" t-as="lineas">
+                                            <tr>
+                                                <td>
+                                                    <span t-field="lineas.numero"/>
+                                                </td>
+                                                <td>
+                                                    <span t-esc="lineas.fecha_pago.strftime('%d %B %Y')" />
+                                                </td>
+                                                <td>
+                                                    <span t-field="lineas.capital" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                                </td>
+                                                <td>
+                                                    <span t-field="lineas.interes" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                        <tr>
+                                            <td style="border-top: 2pt solid black;"></td>
+                                            <td style="border-top: 2pt solid black;"></td>
+                                            <td style="border-top: 2pt solid black;"><span t-field="o.total"/></td>
+                                            <td style="border-top: 2pt solid black;"><span t-field="o.total_interes"/></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div name="notas">
+                                <span t-field="o.notas"/>
+                            </div>
+                            <div style="margin-top:5px">
+                                <p>
+                                    Queda por escrito y debidamente firmado por el interesado, aceptando los términos dicho convenio de préstamo con las especificaciones antes mencionadas.
+                                </p>
+                            </div>
+                            <div class="text-center" style="margin-top:15px" name = "firma">
+                                <p>
+                                    Firma de aceptación: _________________________________________________________________________________________ 
+                                </p>
+                                <div>
+                                    <strong><span t-field="o.cliente_id"/></strong>
+                                </div>
+                                <div>
+                                    <strong><span>DPI:&#160;&#160;</span><span t-if="o.cliente_id.dpi" t-field="o.cliente_id.dpi"/></strong>
+                                </div>
+                            </div>
+                        </div>
+                        <p style="page-break-before:always;"> </p>
+                        <div name="fotos" class="text-center d-block">
+                            <t t-foreach="o.documentos_ids" t-as="d">
+                                <img class="d-block mx-auto" style="max-width:350px;max-height: 350px;" t-attf-src="data:image/*;base64,{{d.archivo}}"/>
+                            </t>
+                        </div>
+                        <div name="firma-footer" class="text-center" style="margin-top:45px">
+                            <span>F _____________________________________________ Huella ___________________</span>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

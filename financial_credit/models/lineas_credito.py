@@ -11,12 +11,12 @@ class LineasCredito(models.Model):
     numero = fields.Integer("N° Cuota")
     contacto = fields.Many2one("res.partner", string="Cliente")
     cuota_inicial = fields.Float("Capital vivo")
-    cuota_fija = fields.Float("Cuota Fija")
+    cuota_fija = fields.Float("Cuota fija")
     interes = fields.Float("Interés")
     capital = fields.Float("Capital")
-    fecha_pago = fields.Date("Fecha De Pago Esperada")
+    fecha_pago = fields.Date("Fecha de pago esperada")
 
-    deuda_acum = fields.Float("Pago Pendiente")
+    deuda_acum = fields.Float("Pago pendiente")
     capital_acum = fields.Float("Capital pendiente")
     interes_acum = fields.Float("Interes pendiente")
 

@@ -18,9 +18,9 @@ class Frecuencia(models.Model):
     tipo_frecuencia = fields.Selection(
         string="Tipo de frecuencia",
         selection=[
-            ("semanas", "Semanas"),
-            ("quincenas", "Quincenas"),
-            ("meses", "Meses"),
+            ("semanas", "Semanales"),
+            ("quincenas", "Quincenales"),
+            ("meses", "Mensuales"),
         ],
     )
     descripcion = fields.Text("Descripcion")

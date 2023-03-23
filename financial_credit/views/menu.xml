@@ -7,7 +7,7 @@
         <field name="view_mode">tree,form,kanban</field>
         <field name="search_view_id" ref="financial_credit.view_financial_credit_search"/>
         <field name="domain">[('tipo_doc', '=','ven')]</field>
-        <field name="context">{'search_default_mis_documenos_creditos': 1}</field>
+        <field name="context">{'search_default_mis_documenos_creditos': 1, 'default_tipo_doc':'ven'}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Ordenes de crédito
@@ -23,7 +23,7 @@
         <field name="view_mode">tree,form,kanban</field>
         <field name="search_view_id" ref="financial_credit.view_financial_credit_search"/>
         <field name="domain">[('tipo_doc', '=','cal')]</field>
-        <field name="context">{'search_default_mis_documenos_creditos': 1}</field>
+        <field name="context">{'search_default_mis_documenos_creditos': 1, 'default_tipo_doc':'cal'}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Ofertas de créditos

@@ -35,7 +35,7 @@ class FinancialCredit(models.Model):
     numero_pagos = fields.Integer("Numero de pagos pendiente", compute="numero_pagos_pend")
     numero_facturas = fields.Integer("Facturas", compute="cantidad_factura")
     
-    tipo_doc = fields.Selection(string="Tipo de documento",selection=[("cal", "Calculadora"), ("ven", "Venta")],default="cal")
+    tipo_doc = fields.Selection(string="Tipo de documento",selection=[("cal", "Calculadora"), ("ven", "Venta")])
     state = fields.Selection(
         string="Estado",
         selection=[
@@ -92,7 +92,7 @@ class FinancialCredit(models.Model):
     tipo_credito_id = fields.Many2one("tipo.credito", string="Tipo de crédito")
     producto_id = fields.Many2one("product.product", string="Producto")
     cuota_id = fields.Many2one("cuotas.credito", string="Cuotas")
-    frecuencia_pago = fields.Many2one("frecuencia.credito", string="Plazos de pago del crédito")   
+    frecuencia_pago = fields.Many2one("frecuencia.credito", string="Plazos de pago")   
     autorizado = fields.Many2one("res.users", string="Autorizado", readonly=True)
     sale_id = fields.Many2one("sale.order", string="Orden de Venta")
     vendedor = fields.Many2one("res.users", string="Vendedor", default=lambda self: self.env.uid, readonly=True)
@@ -254,6 +254,9 @@ class FinancialCredit(models.Model):
             elif flujo == "confirm_sale":
                 record.state = "aprobado"
                 sale.action_confirm()
+            
+            else:
+                record.state = "aprobado"
     
     def action_rechazar(self):
         for record in self:
@@ -328,7 +331,7 @@ class FinancialCredit(models.Model):
                                 "product_id": self.env["product.product"].search([("default_code", "=", "INT_CF")]).id,
                                 "quantity": 1,
                                 "price_unit": record.total_interes,
-                                "tax_ids": [(6, 0, order_line.tax_id.ids)],
+                                #"tax_ids": [(6, 0, order_line.tax_id.ids)],
                             },
                         )
                     ],

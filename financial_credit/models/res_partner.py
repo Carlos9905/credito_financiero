@@ -5,6 +5,7 @@ class ResPartner(models.Model):
     _inherit = "res.partner"
 
     referencia_personal = fields.Char("Referencia perosonal")
+    dpi = fields.Char("DPI")
     telefono_referencia = fields.Char("Télefono de la referencia")
     tipo_relacion = fields.Selection(
         string="Tipo de relación",

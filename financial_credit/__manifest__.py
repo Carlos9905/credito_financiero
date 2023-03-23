@@ -18,6 +18,7 @@
              'data/fc_producto.xml',
              'report/report_view.xml',
              'report/ticket_report.xml',
+             'report/contrato_pdf.xml',
              'views/boton_credito.xml',
              'views/credit_view_form.xml',
              'views/tipo_credito_tree.xml',
