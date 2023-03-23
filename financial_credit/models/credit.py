@@ -303,14 +303,28 @@ class FinancialCredit(models.Model):
         for record in self:
             # Factura para el capital desde la orden de venta
             fecha = self.env['lineas.credito'].search([("credito_id", "=", record.id)]).mapped("fecha_pago")
-            sale_order = self.env["sale.order"].search([("credito_id", "=", record.id)])
-            order_line = self.env["sale.order.line"].search([("order_id", "=", sale_order.id)])
-            invoice_capital = sale_order._create_invoices()
-            invoice_capital.write(
+            #sale_order = self.env["sale.order"].search([("credito_id", "=", record.id)])
+            #order_line = self.env["sale.order.line"].search([("order_id", "=", sale_order.id)])
+            #invoice_capital = sale_order._create_invoices()
+            invoice_capital = self.env["account.move"].create(
                 {
                     "credito_id": record.id,
+                    "partner_id": record.cliente_id.id,
+                    "move_type": "out_invoice",
                     "payment_reference": record.numero + "(Capital)",
-                    "invoice_date_due":fecha[-1]
+                    "invoice_date_due":fecha[-1],
+                    "invoice_line_ids": [
+                        (
+                            0,
+                            None,
+                            {
+                                "product_id": record.producto_id.id,#self.env["product.product"].search([("default_code", "=", "INT_CF")]).id,
+                                "quantity": 1,
+                                "price_unit": record.total,
+                                #"tax_ids": [(6, 0, order_line.tax_id.ids)],
+                            },
+                        )
+                    ],
                 }
             )
             invoice_capital.action_post()

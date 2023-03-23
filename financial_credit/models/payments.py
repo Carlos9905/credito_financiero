@@ -112,7 +112,10 @@ class Payments(models.Model):
         for record in self:
             # Facturas
             invoice_capital = self.env["account.move"].search(
-                [("invoice_origin", "=", record.credit_id.sale_id.name)]
+                [
+                    ("credito_id", "=", record.credit_id.id),
+                    ("payment_reference", "=", record.credit_id.numero + "(Capital)")
+                ]
             )
             invoice_interes = self.env["account.move"].search(
                 [
@@ -267,18 +270,18 @@ class Payments(models.Model):
             # Facturas
             if record.credit_id:
                 invoice_capital = self.env["account.move"].search(
-                    [("invoice_origin", "=", record.credit_id.sale_id.name)]
+                    [
+                        ("credito_id", "=", record.credit_id.id),
+                        ("payment_reference", "=", record.credit_id.numero + "(Capital)")
+                    ]
                 )
                 invoice_interes = self.env["account.move"].search(
                     [
                         ("credito_id", "=", record.credit_id.id),
-                        (
-                            "payment_reference",
-                            "=",
-                            record.credit_id.numero + "(Interes)",
-                        ),
+                        ("payment_reference", "=", record.credit_id.numero + "(Interes)"),
                     ]
                 )
+                
                 record.balance = (
                     invoice_capital.amount_residual + invoice_interes.amount_residual
                 )
