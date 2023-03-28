@@ -89,6 +89,7 @@ class FinancialCredit(models.Model):
     notas = fields.Text("Notas")
     descripcion = fields.Text("Descripción", compute="get_descricion_producto", store=True, readonly=False)
     
+    company_id = fields.Many2one("res.company", string="Compañia", default=lambda self:self.env.company)
     tipo_credito_id = fields.Many2one("tipo.credito", string="Tipo de crédito")
     producto_id = fields.Many2one("product.product", string="Producto")
     cuota_id = fields.Many2one("cuotas.credito", string="Cuotas")

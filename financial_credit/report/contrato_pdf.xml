@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <record id="paperformat_financial_credit" model="report.paperformat">
+        <field name="name">Formato de papel para Contrato</field>
+        <field name="default" eval="True" />
+        <field name="format">Letter</field>
+        <field name="page_height">0</field>
+        <field name="page_width">0</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">35</field>
+        <field name="margin_bottom">15</field>
+        <field name="margin_left">15</field>
+        <field name="margin_right">15</field>
+        <field name="dpi">90</field>
+    </record>
+
     <record id="action_report_financial_credit" model="ir.actions.report">
         <field name="name">Contrato</field>
         <field name="model">financial.credit</field>
@@ -8,13 +22,17 @@
         <field name="print_report_name">'Contrato - '+object.numero+'.pdf'</field>
         <field name="binding_model_id" ref="model_financial_credit" />
         <field name="binding_type">report</field>
-        <field name="paperformat_id" ref="base.paperformat_us"/>
+        <field name="paperformat_id" ref="financial_credit.paperformat_financial_credit"/>
     </record>
-
+        
     <template id="reporte_financial_credit">
         <t t-call="web.html_container">
-            <t t-call="web.external_layout">
+            <t t-call="web.basic_layout">
                 <t t-foreach="docs" t-as="o">
+                    <t t-if="o.state == 'aprobado'">
+                    <div class="header">
+                        <img style="width:200px; hight:200px" t-if="o.company_id.logo" t-attf-src="data:image/*;base64,{{o.company_id.logo}}"/>
+                    </div>
                     <div class="page">
                         <div class = "text-right" name = "fecha">
                             <span>Guatemala, </span><span t-esc="o.fecha.strftime('%d %B %Y')" /><br/>
@@ -62,8 +80,8 @@
                                         <tr>
                                             <td style="border-top: 2pt solid black;"></td>
                                             <td style="border-top: 2pt solid black;"></td>
-                                            <td style="border-top: 2pt solid black;"><span t-field="o.total"/></td>
-                                            <td style="border-top: 2pt solid black;"><span t-field="o.total_interes"/></td>
+                                            <td style="border-top: 2pt solid black;"><span t-field="o.total" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
+                                            <td style="border-top: 2pt solid black;"><span t-field="o.total_interes" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -71,12 +89,12 @@
                             <div name="notas">
                                 <span t-field="o.notas"/>
                             </div>
-                            <div style="margin-top:5px">
+                            <div>
                                 <p>
                                     Queda por escrito y debidamente firmado por el interesado, aceptando los términos dicho convenio de préstamo con las especificaciones antes mencionadas.
                                 </p>
                             </div>
-                            <div class="text-center" style="margin-top:15px" name = "firma">
+                            <div class="text-center" style="margin-top:65px" name = "firma">
                                 <p>
                                     Firma de aceptación: _________________________________________________________________________________________ 
                                 </p>
@@ -88,16 +106,24 @@
                                 </div>
                             </div>
                         </div>
-                        <p style="page-break-before:always;"> </p>
-                        <div name="fotos" class="text-center d-block">
-                            <t t-foreach="o.documentos_ids" t-as="d">
-                                <img class="d-block mx-auto" style="max-width:350px;max-height: 350px;" t-attf-src="data:image/*;base64,{{d.archivo}}"/>
-                            </t>
-                        </div>
-                        <div name="firma-footer" class="text-center" style="margin-top:45px">
-                            <span>F _____________________________________________ Huella ___________________</span>
-                        </div>
+                        <t t-if="o.documentos_ids">
+                            <p style="page-break-before:always;"></p>
+                            <div name="fotos" class="text-center d-block">
+                                <t t-foreach="o.documentos_ids" t-as="d">
+                                    <img class="d-block mx-auto" style="max-width:350px;max-height: 350px;margin-top:20px" t-attf-src="data:image/*;base64,{{d.archivo}}"/>
+                                </t>
+                            </div>
+                            <div name="firma-footer" class="text-center" style="margin-top:65px">
+                                <span>F _______________________________________________ Huella _____________________</span>
+                            </div>
+                        </t>
                     </div>
+                    </t>
+                    <t t-else ="">
+                        <center>
+                            <h5>El crédito aun no está aprobado</h5>
+                        </center>
+                    </t>
                 </t>
             </t>
         </t>
