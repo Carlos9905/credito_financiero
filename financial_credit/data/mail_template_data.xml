@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!--Email template -->
+        <record id="email_template_credito_aprobado" model="mail.template">
+            <field name="name">Cŕedito: Aprobar crédito</field>
+            <field name="model_id" ref="financial_credit.model_financial_credit"/>
+            <field name="email_from">{{ (object.vendedor.email_formatted or user.email_formatted) }}</field>
+            <field name="partner_to">{{ object.cliente_id.id }}</field>
+            <field name="subject">{{ object.company_id.name }} Crédito (Número {{ object.numero or 'n/a' }})</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                        Estimado /a:
+                        <t t-out="object.cliente_id.name or ''">José Aguilar</t>
+                        <br />
+                        <br />
+                        Su crédito con número de identificación <t t-if="object.numero"><strong t-out="object.numero or ''">CREDIT-0001-23</strong></t> ¡ha sido aprobado!
+                        <br />
+                        <br />
+                        El monto del crédito aprobado es de <strong t-out="format_amount(object.total, object.currency_id) or ''">$ 143,750.00</strong> con una tasa de interés del <strong t-out="object.interes_mensual or ''">2%</strong> Mensual.
+                        Le recordamos que el adeudado total será de <t t-if="object.deuda_total"><strong t-out="object.deuda_total or ''">$ 236,690.00</strong></t>, incluyendo el capital y los intereses
+                        <br />
+                        <br />
+                        Adjunto a este correo encontrará el contrato correspondiente a su crédito, en donde podrá encontrar los plazos, la forma de pago y toda la información detallada sobre su crédito.
+                    </p>
+                </div>
+            </field>
+            <field name="report_template" ref="financial_credit.action_report_financial_credit"/>
+            <field name="report_name">Contrato_{{ (object.numero or '')}}</field>
+            <field name="lang">{{ object.cliente_id.lang }}</field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+        <record id="email_template_credito_rechazado" model="mail.template">
+            <field name="name">Cŕedito: Rechazar crédito</field>
+            <field name="model_id" ref="financial_credit.model_financial_credit"/>
+            <field name="email_from">{{ (object.vendedor.email_formatted or user.email_formatted) }}</field>
+            <field name="partner_to">{{ object.cliente_id.id }}</field>
+            <field name="subject">{{ object.company_id.name }} Crédito (Número {{ object.numero or 'n/a' }})</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                        Estimado /a:
+                        <t t-out="object.cliente_id.name or ''">José Aguilar</t>
+                        <br />
+                        <br />
+                        Lamentablemente, después de revisar cuidadosamente su solicitud, debemos informarle que su crédito con número de identificación <t t-if="object.numero"><strong t-out="object.numero or ''">CREDIT-0001-23</strong></t> ha sido rechazado.
+                        <br />
+                        Entendemos lo importante que es obtener financiamiento para sus necesidades, sin embargo, 
+                        existen varias razones por las cuales una solicitud de crédito puede ser rechazada, incluyendo:
+                        <br />
+                        <ul>
+                            <li>Información incompleta o inexacta proporcionada en la solicitud</li>
+                            <li>Incumplimiento de los requisitos de crédito, como ingresos insuficientes o historial de crédito negativo</li>
+                            <li>Capacidad de pago insuficiente para cubrir el monto del crédito solicitado</li>
+                            <li>Otros factores específicos del solicitante y/o del tipo de crédito solicitado</li>
+                        </ul>
+                        <br />
+                        Nos gustaría asegurarle que tomamos su solicitud de crédito muy en serio y que nuestra decisión 
+                        fue basada en un proceso riguroso de evaluación crediticia. Si tiene alguna pregunta o desea obtener 
+                        más información sobre los motivos específicos del rechazo de su solicitud, por favor no dude en ponerse en 
+                        contacto con nosotros.
+                        <br />
+                        Agradecemos su interés en nuestros servicios financieros y esperamos que en el futuro podamos ayudarlo a obtener el financiamiento que necesita.
+                    </p>
+                </div>
+            </field>
+            <field name="report_template" ref="financial_credit.action_report_financial_credit"/>
+            <field name="report_name">Contrato_{{ (object.numero or '')}}</field>
+            <field name="lang">{{ object.cliente_id.lang }}</field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+        <record id="email_template_credito_notificacion_pago" model="mail.template">
+            <field name="name">Cŕedito: Notificación de pago</field>
+            <field name="model_id" ref="financial_credit.model_lineas_credito"/>
+            <field name="email_from"></field>
+            <field name="partner_to">{{ object.contacto.id }}</field>
+            <field name="subject">Notificación de pago - Crédito n° {{ object.credito_id.numero or 'n/a' }}</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                        Estimado /a:
+                        <t t-out="object.contacto.name or ''">José Aguilar</t>
+                        <br />
+                        <br />
+        Le recordamos que su pago correspondiente a la cuota N° <strong t-out="object.numero or ''">1</strong>, del crédito con número de identificación <t t-if="object.credito_id"><strong t-out="object.credito_id.numero or ''">CREDIT-0001-23</strong></t>, se encuentra próximo a su fecha de vencimiento. 
+                        <br />
+                        El monto adeudado es de <strong t-out="format_amount(object.deuda_acum, object.currency_id)">1000</strong> y la fecha de vencimiento es el 
+                        <strong t-out="object.fecha_pago">22/05/23</strong>.
+                        <br />
+                        Para evitar cargos por retraso en el pago y mantener su historial crediticio en buen estado, 
+                        le recomendamos que realice el pago a tiempo.
+                        <br />
+                        <br />
+                        Si tiene alguna pregunta o necesita más información, no dude en ponerse en contacto con nosotros. 
+                        Agradecemos su confianza en nuestros servicios financieros y esperamos seguir trabajando con usted en el futuro.
+                    </p>
+                </div>
+            </field>
+        </record>
+    </data>
+</odoo>

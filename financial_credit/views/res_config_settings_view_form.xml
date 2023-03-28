@@ -159,6 +159,17 @@
                                 </div>
                             </div>
                         </div>
+                        <div class = "col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Notificación</span>
+                                <div class="text-muted">
+                                    Días de anticipación de notificación de pago
+                                </div>
+                                <div class="text-muted">
+                                    <field name="dias_notificacion"/>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <h2>Información</h2>
                     <div class ="row mt16 o_settings_container">

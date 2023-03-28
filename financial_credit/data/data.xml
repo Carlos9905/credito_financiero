@@ -46,5 +46,16 @@
         <field name="code">model._cron_pagos_atrasados()</field>
         <field name="state">code</field>
     </record>
+    <record id="ir_cron_notificacion_pago" model="ir.cron">
+        <field name="name">Créditos Financiero: Notificación de pago</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+        <field name="nextcall" eval="(DateTime.now().replace(hour=16, minute=0) + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')" />
+        <field name="doall" eval="False"/>
+        <field name="model_id" ref="model_cron_financial_credit"/>
+        <field name="code">model._cron_notificacion_pagos()</field>
+        <field name="state">code</field>
+    </record>
     
 </odoo>

@@ -41,7 +41,7 @@
                         <group string ="Información del cliente">
                             <field name="type_doc" invisible="1"/>
                             <field name="currency_id" invisible="1"/>
-                            <field name="telefono" attrs="{'readonly':['|',('state', '=', 'pagado'),('type_doc','=','pago_credi')]}" required="1"/>
+                            <field name="telefono" attrs="{'readonly':['|',('state', '=', 'pagado'),('type_doc','=','pago_credi')]}"/>
                             <field name="cliente_id" attrs="{'readonly':['|',('state', '=', 'pagado'),('type_doc','=','pago_credi')]}" required="1"/>
                             <field name="credit_id" attrs="{'readonly':['|',('state', '=', 'pagado'),('type_doc','=','pago_credi')]}" domain="[('cliente_id','=',cliente_id),('state','=','pagos_pend')]" required="1"/>
                             <field name="cuota_fija" widget='monetary' options="{'currency_field': 'currency_id'}"/>
@@ -69,8 +69,6 @@
                                     <field name="fecha_pago"/>
                                     <field name="payment_amount" sum="Total"/>
                                     <field name="deuda_acum" optional="hide" sum="Pegos pendientes"/>
-                                    <!-- <field name="capital_acum" optional="hide"/>
-                                    <field name="interes_acum" optional="hide"/>-->
                                     <field name="payment_date" optional="hide"/>
                                     <field name="mora" optional="hide"/>
                                 </tree>

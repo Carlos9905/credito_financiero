@@ -16,6 +16,7 @@
              'security/aprobacion.xml',
              'data/data.xml',
              'data/fc_producto.xml',
+             'data/mail_template_data.xml',
              'report/report_view.xml',
              'report/ticket_report.xml',
              'report/contrato_pdf.xml',

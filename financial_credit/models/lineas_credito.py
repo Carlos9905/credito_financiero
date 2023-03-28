@@ -38,6 +38,11 @@ class LineasCredito(models.Model):
 
     credito_id = fields.Many2one("financial.credit", string="Crédito de Origen")
     paymet_id = fields.Many2one("payment.credit", string="Pago al que pertenece")
+    currency_id = fields.Many2one(
+        "res.currency",
+        readonly=True,
+        default=lambda self: self.env.user.company_id.currency_id,
+    )
 
     @api.depends("deuda_acum")
     def cambiar_estado(self):
@@ -50,4 +55,7 @@ class LineasCredito(models.Model):
                 record.payment_date = datetime.now(pytz.timezone(self.env.user.tz))
             elif record.deuda_acum == round(record.cuota_fija,2):
                 record.payment_state = "pendiente"
-#Codigo by Carlos Aguilar
+    
+    #Enviar Notificación de recordatorio de pago
+    def send_notification_payment(self):
+        self.env.ref('financial_credit.email_template_credito_notificacion_pago').send_mail(self.id)
