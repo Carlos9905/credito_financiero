@@ -98,5 +98,37 @@
                 </div>
             </field>
         </record>
+        <record id="email_template_credito_recibo_pago" model="mail.template">
+            <field name="name">Cŕedito: Enviar Recibo de pago</field>
+            <field name="model_id" ref="financial_credit.model_payment_credit"/>
+            <field name="email_from"></field>
+            <field name="partner_to">{{ object.cliente_id.id }}</field>
+            <field name="subject">Recibo de pago - Crédito n° {{ object.credit_id.numero or 'n/a' }}</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                        Estimado /a:
+                        <t t-out="object.cliente_id.name or ''">José Aguilar</t>
+                        <br />
+                        <br />
+Le agradecemos por realizar su pago correspondiente al crédito con número de identificación <strong t-out="object.credit_id.numero or ''">CREDIT-0001-23</strong>. 
+Le informamos que su pago ha sido recibido y registrado exitosamente en nuestra base de datos. A continuación, encontrará los detalles de su pago:<br />
+<ul>
+    <li>Fecha de pago: <strong t-out="object.fecha or ''">28/05/23</strong></li>
+    <li>Importe pagado: <strong t-out="format_amount(object.monto, object.currency_id)">$ 1000</strong></li>
+    <li>Número de recibo: <strong t-out="object.number or ''">PAY-0001</strong></li>
+    <li>Número de identificación del crédito: <strong t-out="object.credit_id.numero or ''">CREDIT-0001-23</strong></li>
+</ul>
+<br />
+Si tiene alguna pregunta o necesita más información sobre su pago o su crédito, no dude en ponerse en contacto con nosotros. Agradecemos su confianza en nuestros servicios financieros y esperamos seguir trabajando con usted en el futuro.
+
+                    </p>
+                </div>
+            </field>
+            <field name="report_template" ref="financial_credit.action_ticket_pago"/>
+            <field name="report_name">Recibo_{{ (object.number or '')}}</field>
+            <field name="lang">{{ object.cliente_id.lang }}</field>
+            <field name="auto_delete" eval="True"/>
+        </record>
     </data>
 </odoo>

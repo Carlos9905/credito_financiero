@@ -47,8 +47,8 @@
                                 &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; Por este medio se le informa que se le ha autorizado el préstamo solicitado por el monto de <strong><span t-field="o.total" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></strong>
                                 sobre una tasa de interés del <strong><span t-esc="o.tipo_credito_id.interes * 100"/>&#37;
                                 ( <span t-esc="(o.currency_id.amount_to_text(o.tipo_credito_id.interes * 100)).replace('Quetzales', 'porciento')"/> )</strong>
-                                sobre la deuda total debiendo pagar un total de <strong><span t-field="o.deuda_total" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></strong> esto en un lapso de&#160;&#160;&#160;<strong><span t-field="o.cuota_id.numero"/> cuotas</strong>
-                                &#160;<span t-field="o.frecuencia_pago.tipo_frecuencia"/> detalladas a continuación:
+                                sobre la deuda total debiendo pagar un total de <strong><span t-field="o.deuda_total" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/></strong> esto en un lapso de&#160;&#160;&#160;<strong><span t-field="o.cuota_id.numero"/> cuotas
+                                &#160;<span t-field="o.frecuencia_pago.tipo_frecuencia"/></strong>&#160;detalladas a continuación:
                             </p>
 
                             <div style="font-size:12px">
