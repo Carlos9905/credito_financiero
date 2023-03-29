@@ -107,15 +107,12 @@
                                 </div>
                             </div>
                         </div>
-                        <t t-if="o.documentos_ids">
+                        <t t-if="o.documentos">
                             <p style="page-break-before:always;"></p>
                             <div name="fotos" class="text-center d-block">
                                 <t t-foreach="o.documentos_ids" t-as="d">
                                     <img class="d-block mx-auto" style="max-width:350px;max-height: 350px;margin-top:20px" t-attf-src="data:image/*;base64,{{d.archivo}}"/>
                                 </t>
-                            </div>
-                            <div name="firma-footer" class="text-center" style="margin-top:65px">
-                                <span>F _______________________________________________ Huella _____________________</span>
                             </div>
                         </t>
                     </div>

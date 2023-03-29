@@ -54,6 +54,7 @@ class FinancialCredit(models.Model):
     
     habiliar_solicitud = fields.Boolean("Solicitud")
     venta_servicio = fields.Boolean("Venta de servicio", compute="cal_venta_servicio", store=True)
+    documentos = fields.Boolean("Documentos", compute="verificar_documentos", store=True, copy=False, defualt=False)
 
     numero = fields.Char(string="Orden de Crédito", default="Nuevo", readonly=True)
     numero_serie = fields.Char("Número de serie")
@@ -372,6 +373,14 @@ class FinancialCredit(models.Model):
             record.state = "pendiente"
 
     # Calculos
+    def verificar_documentos(self):
+        for record in self:
+            docs = self.env['documents.credit'].search([('credito_id', '=', record.id)])
+            if docs:
+                record.documentos = True
+            else: 
+                record.documentos = False
+
     @api.depends("interes_mensual","tipo_amortiazacion", "total","cuota_id")
     def cal_total_interes(self):
         for record in self:
