@@ -30,7 +30,7 @@
         <t t-call="web.html_container">
             <t t-call="web.basic_layout">
                 <t t-foreach="docs" t-as="o">
-                    <t t-if="o.state == 'aprobado'">
+                    <t t-if="o.state in ['aprobado', 'pendiente']">
                     <div class="header">
                         <img style="width:200px; hight:200px" t-if="o.company_id.logo" t-attf-src="data:image/*;base64,{{o.company_id.logo}}"/>
                     </div>

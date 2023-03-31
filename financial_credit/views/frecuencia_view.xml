@@ -5,6 +5,7 @@
         <field name="model">frecuencia.credito</field>
         <field name="arch" type="xml">
             <tree string="Frecuencias de crédito" editable="bottom">
+                <field name="sequence" widget="handle"/>
                 <field name="nombre" required="1"/>
                 <field name="tipo_frecuencia" required="1" widget="selection"/>
                 <field name="descripcion"/>

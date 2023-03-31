@@ -5,6 +5,7 @@
         <field name="model">cuotas.credito</field>
         <field name="arch" type="xml">
             <tree string="Cuotas de crédito" editable="bottom">
+                <field name="sequence" widget="handle"/>
                 <field name="nombre" required="1"/>
                 <field name="numero" width="300px" required="1"/>
             </tree>

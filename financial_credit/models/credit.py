@@ -61,29 +61,16 @@ class FinancialCredit(models.Model):
     telefono = fields.Char("Teléfono")
     
     fecha = fields.Date("Fecha", default=lambda self: datetime.now(pytz.timezone(self.env.user.tz)))
+    fecha_primer_pago = fields.Date("Fecha del primer pago")
 
     interes_mensual = fields.Float("TEM (%)", related="tipo_credito_id.interes", store=True, help="Tasa de interés mensual")
     precio = fields.Float("Precio", compute="_get_precio", store=True)# Precio del producto
     monto = fields.Float("Monto")
     monto_inicial = fields.Float("Monto Inicial", help="Monto inicial como anticipo para aplicar al crédito")
-    total = fields.Float(
-        "A Financiar",
-        compute="cal_total",
-        help="Es la resta del precio del producto menos en monto inicial",
-    )
-    deuda_total = fields.Float(
-        "Deuda Total",
-        compute="cal_deuda_total",
-        help="Total a pagar por el período establecido",
-    )
-    cuota_fija = fields.Float(
-        "Cuota fija",
-        compute="cal_cuota_fija",
-        help="Frecuencia en la que el cliente dara la cuota",
-    )
-    total_interes = fields.Float(
-        "Total de Interés", compute="cal_total_interes", store=True, help="Intereses"
-    )
+    total = fields.Float("A Financiar",compute="cal_total",help="Es la resta del precio del producto menos en monto inicial")
+    deuda_total = fields.Float("Deuda Total",compute="cal_deuda_total",help="Total a pagar por el período establecido")
+    cuota_fija = fields.Float("Cuota fija",compute="cal_cuota_fija",help="Frecuencia en la que el cliente dara la cuota")
+    total_interes = fields.Float("Total de Interés", compute="cal_total_interes", store=True, help="Intereses")
     max_financiar = fields.Float("% Maximo de Financiamiento", related="tipo_credito_id.max_financiar")
     monto_minimo_obli = fields.Float("Monto Minimo para aplicar", compute="cal_monto_minimo", store=True)
     
@@ -99,18 +86,8 @@ class FinancialCredit(models.Model):
     sale_id = fields.Many2one("sale.order", string="Orden de Venta")
     vendedor = fields.Many2one("res.users", string="Vendedor", default=lambda self: self.env.uid, readonly=True)
     cliente_id = fields.Many2one("res.partner",string="Cliente")
-    currency_id = fields.Many2one(
-        "res.currency",
-        readonly=True,
-        default=lambda self: self.env.user.company_id.currency_id,
-    )
-    journals_id = fields.Many2one(
-        "account.journal",
-        string="Diario",
-        default=lambda self: self.env["account.journal"].search(
-            [("name", "=", "Banco")]
-        ),
-    )
+    currency_id = fields.Many2one("res.currency",readonly=True,default=lambda self: self.env.user.company_id.currency_id)
+    journals_id = fields.Many2one("account.journal",string="Diario",default=lambda self: self.env["account.journal"].search([("name", "=", "Banco")]))
 
     documentos_ids = fields.One2many("documents.credit", "credito_id", string="Documentos")
     lineas_pagos_ids = fields.One2many("lineas.credito", "credito_id", "Lineas de pago")
@@ -278,7 +255,7 @@ class FinancialCredit(models.Model):
         for record in self:
             if record.tipo_amortiazacion == "lineal":
                 self.env["lineas.credito"].search([('credito_id', '=', record.id)]).unlink()
-                datos = amortizacion_lineal(record.frecuencia_pago.tipo_frecuencia, record.total,record.cuota_id.numero, record.interes_mensual)
+                datos = amortizacion_lineal(record.frecuencia_pago.tipo_frecuencia, record.total,record.cuota_id.numero, record.interes_mensual, record.fecha_primer_pago)
                 numero = 1
                 res = []
                 for dato in datos['tabla']:
@@ -355,19 +332,18 @@ class FinancialCredit(models.Model):
             )
             invoice_interes.action_post()
 
-            # Datos del pago
-            vals = {
-                "reconciled_invoice_ids": [(4, invoice_capital.id)],
-                "partner_id": record.cliente_id.id,
-                "amount": record.monto_inicial,
-                "date": record.fecha,
-                "journal_id": record.journals_id.id,
-                "payment_type": "inbound",
-                "ref": record.numero + " (Monto inicial)",
-            }
-
             # Registrar pago
             if record.monto_inicial > 0:
+                # Datos del pago
+                vals = {
+                    "reconciled_invoice_ids": [(4, invoice_capital.id)],
+                    "partner_id": record.cliente_id.id,
+                    "amount": record.monto_inicial,
+                    "date": record.fecha,
+                    "journal_id": record.journals_id.id,
+                    "payment_type": "inbound",
+                    "ref": record.numero + " (Monto inicial)",
+                }
                 self.payment_register(vals, invoice_capital)
 
             record.state = "pendiente"

@@ -42,14 +42,14 @@
                         confirm="¿Está seguro que quiere rechazar esta solicitud?"/>
                     
                     <button name="action_reestablecer" type="object" 
-                        string="Reestabler Solicitud" class="btn btn-warning" 
-                        attrs="{'invisible':[('state', 'not in', ('aprobado','rechazado'))]}" groups="financial_credit.view_aprobacion_field" 
+                        string="Reestabler a Borrador" class="btn btn-warning" 
+                        attrs="{'invisible':[('state', 'not in', ('aprobado','rechazado'))]}" groups="financial_credit.view_aprobacion_field,financial_credit.view_configuracion_field" 
                         confirm="¿Está seguro que quiere regresar a estado de borrador este documento?"/>
 
                     <button name="action_factura" type="object" string="Crear Factura" class="btn btn-primary" attrs="{'invisible':[('state', '!=', 'aprobado')]}"/>
                     <button name="crear_pago" type="object" string="Registrar pago" class="btn btn-primary" attrs="{'invisible':[('state', '!=', 'pendiente')]}"/>
                     
-                    <button name="reprogramar_cuotas" type="object" string="Reprogramar cuotas" class="btn-primary" groups="financial_credit.view_reprogramar_field"/>
+                    <!-- <button name="reprogramar_cuotas" type="object" string="Reprogramar cuotas" class="btn-primary" groups="financial_credit.view_reprogramar_field"/>-->
 
                     <button name="ver_facturas" type="object" string="Ver Facturas" class="btn-primary" attrs="{'invisible':[('state', 'in', ['pendiente','aprobado','borrador','solicitud','rechazado'])]}"/>
                     <field name="state" widget="statusbar" clickable="False" statusbar_visible="borrador,solicitud,aprobado,pendiente,pagado,rechazado" attrs="{'invisible':[('tipo_doc','!=','ven')]}"/>
@@ -101,6 +101,7 @@
                             <field name="frecuencia_pago" widget="selection" required="1" attrs="{'readonly':[('state', 'not in', ['borrador'])]}" options="{'no_quick_create': True, 'no_create_edit' : True}"/>
                             <field name="cuota_id" attrs="{'readonly':[('state', 'not in', ['borrador'])]}" options="{'no_open': True, 'no_create_edit': True, 'no_create': True}" required="1"/>
                             <field name="tipo_credito_id" options="{'no_open': True, 'no_create_edit': True, 'no_create': True}" attrs="{'readonly':[('state', 'not in', ['borrador'])]}" required="1"/>
+                            <field name="fecha_primer_pago" attrs="{'readonly':[('state', 'not in', ['borrador'])]}" required="1"/>
                             <field name="max_financiar" widget="percentage"/>
                             <field name="monto_minimo_obli" widget='monetary' options="{'currency_field': 'currency_id'}"/>
                             <field name="monto_inicial" widget='monetary' options="{'currency_field': 'currency_id'}" attrs="{'readonly':[('state', 'not in', ['borrador'])]}" required="1"/>

@@ -8,6 +8,7 @@ class Cuotas(models.Model):
 
     nombre = fields.Char("Nombre")
     numero = fields.Integer("Número de cuotas")
+    sequence = fields.Integer("Secuencia")
 
 class Frecuencia(models.Model):
     _name = "frecuencia.credito"
@@ -25,5 +26,4 @@ class Frecuencia(models.Model):
     )
     descripcion = fields.Text("Descripcion")
     cuotas_ids = fields.Many2many("cuotas.credito", string="Cuotas")
-
-#Codigo by Carlos Aguilar
+    sequence = fields.Integer("Secuencia")
