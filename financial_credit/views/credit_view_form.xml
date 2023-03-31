@@ -43,7 +43,7 @@
                     
                     <button name="action_reestablecer" type="object" 
                         string="Reestabler a Borrador" class="btn btn-warning" 
-                        attrs="{'invisible':[('state', 'not in', ('aprobado','rechazado'))]}" groups="financial_credit.view_aprobacion_field,financial_credit.view_configuracion_field" 
+                        attrs="{'invisible':[('state', 'in', ['borrador','aprobado', 'pendiente', 'pagado', 'rechazado', 'cancelado'])]}" groups="financial_credit.view_aprobacion_field,financial_credit.view_configuracion_field" 
                         confirm="¿Está seguro que quiere regresar a estado de borrador este documento?"/>
 
                     <button name="action_factura" type="object" string="Crear Factura" class="btn btn-primary" attrs="{'invisible':[('state', '!=', 'aprobado')]}"/>
