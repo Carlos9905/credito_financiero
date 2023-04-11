@@ -8,7 +8,7 @@
         <field name="arch" type="xml">
             <xpath expr="//div[hasclass('settings')]" position="inside">
                 <div class="app_settings_block" data-string="Creditos" string="Créditos" data-key="financial_credit" groups="base.group_system">
-                    <h2>Configuración de Crédito</h2>
+                    <h2>Moras</h2>
                     <div class ="row mt16 o_settings_container">
                         <div class = "col-12 col-lg-6 o_setting_box">
                             <div class="o_setting_left_pane"/>
@@ -54,7 +54,18 @@
                                 </div>
                             </div>
                         </div>
-
+                        <div class = "col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Limite máximo de moras</span>
+                                <div class="text-muted">
+                                    Establezca un limite de mora (el valor 0 quiere decir que no hay limites)
+                                </div>
+                                <div class="text-muted">
+                                    <field name="lim_max_mora"/>
+                                </div>
+                            </div>
+                        </div>
                         <div class = "col-12 col-lg-6 o_setting_box">
                             <div class="o_setting_left_pane"/>
                             <div class="o_setting_right_pane">
@@ -67,6 +78,9 @@
                                 </div>
                             </div>
                         </div>
+                    </div>    
+                    <h2>Configuración Extra</h2>    
+                    <div class ="row mt16 o_settings_container">
                         <div class = "col-12 col-lg-6 o_setting_box">
                             <div class="o_setting_right_pane">
                                 <span class="o_form_label">Producto de Interés</span>
@@ -75,19 +89,6 @@
                                 </div>
                                 <div class="text-muted">
                                     <field name="interes_product_id" options="{'no_create': True}" domain="[('type','=','service')]"/>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class = "col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_left_pane"/>
-                            <div class="o_setting_right_pane">
-                                <span class="o_form_label">Limite máximo de moras</span>
-                                <div class="text-muted">
-                                    Establezca un limite de mora (el valor 0 quiere decir que no hay limites)
-                                </div>
-                                <div class="text-muted">
-                                    <field name="lim_max_mora"/>
                                 </div>
                             </div>
                         </div>
@@ -167,6 +168,17 @@
                                 </div>
                                 <div class="text-muted">
                                     <field name="dias_notificacion"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class = "col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Usar opciones de pago</span>
+                                <div class="text-muted">
+                                    Si selecciona esta opción, en el menú de pagos, podrá elegir que flujo de pago quiere realizar
+                                </div>
+                                <div class="text-muted">
+                                    <field name="usa_opciones_pago"/>
                                 </div>
                             </div>
                         </div>

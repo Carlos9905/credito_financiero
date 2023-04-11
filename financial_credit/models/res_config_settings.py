@@ -19,6 +19,7 @@ class FinancialCreditAjustes(models.TransientModel):
     buscar_cliente_por = fields.Selection(string="Buscar cliente por", selection=[('name','Nombre'),('vat','Identificación'),('phone','Teléfono')])
     tipo_amortiazacion = fields.Selection(string="Tipo de amortización", selection=[("lineal", "Lineal"), ("compuesta", "Compuesta")], default="lineal")
     dias_notificacion = fields.Integer(string="Notificación")
+    usa_opciones_pago = fields.Boolean(string="Usar opción de pago", default=False)
 
     module_sale_order_lot_selection = fields.Boolean("Usar Lotes/n° Serie en las ventas")
 
@@ -38,7 +39,8 @@ class FinancialCreditAjustes(models.TransientModel):
         res.update(moras_automaticas = self.env['ir.config_parameter'].sudo().get_param('financial_credit.moras_automaticas'))
         res.update(buscar_cliente_por = self.env['ir.config_parameter'].sudo().get_param('financial_credit.buscar_cliente_por'))
         res.update(tipo_amortiazacion = self.env['ir.config_parameter'].sudo().get_param('financial_credit.tipo_amortiazacion'))
-        res.update(dias_notificacion = self.env['ir.config_parameter'].sudo().get_param('financial_credit.dias_notificacion'))
+        res.update(dias_notificacion = int(self.env['ir.config_parameter'].sudo().get_param('financial_credit.dias_notificacion')))
+        res.update(usa_opciones_pago = self.env['ir.config_parameter'].sudo().get_param('financial_credit.usa_opciones_pago'))
         return res
     
     def set_values(self):
@@ -56,7 +58,8 @@ class FinancialCreditAjustes(models.TransientModel):
         self.env['ir.config_parameter'].sudo().set_param('financial_credit.moras_automaticas', self.moras_automaticas)
         self.env['ir.config_parameter'].sudo().set_param('financial_credit.buscar_cliente_por', self.buscar_cliente_por)
         self.env['ir.config_parameter'].sudo().set_param('financial_credit.tipo_amortiazacion', self.tipo_amortiazacion)
-        self.env['ir.config_parameter'].sudo().set_param('financial_credit.dias_notificacion', self.dias_notificacion)
+        self.env['ir.config_parameter'].sudo().set_param('financial_credit.dias_notificacion', int(self.dias_notificacion))
+        self.env['ir.config_parameter'].sudo().set_param('financial_credit.usa_opciones_pago', self.usa_opciones_pago)
         return res
 #Aqui iran los crons de las moras
 class CronFinancialCredit(models.Model):

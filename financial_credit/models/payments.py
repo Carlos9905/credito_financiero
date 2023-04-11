@@ -4,7 +4,7 @@ from odoo.exceptions import UserError
 from datetime import datetime
 import pytz
 
-from decimal import Decimal,ROUND_HALF_UP, ROUND_HALF_DOWN, ROUND_DOWN, ROUND_UP
+from decimal import Decimal,ROUND_HALF_UP
 
 class Payments(models.Model):
     _name = "payment.credit"
@@ -28,6 +28,7 @@ class Payments(models.Model):
         string="Tipo de documento",
         selection=[("pago_credi", "Pago por crédito"), ("pago", "Pago normal")],
     )
+    flujo_pago = fields.Selection(string='Opciones de pago', selection=[('normal', 'Normal'),('interes', 'Solo Interés'),('capital', 'Solo Capital')])
 
     number = fields.Char("Número", default="Nuevo pago", readonly=True)
     cliente_id = fields.Many2one(
@@ -38,6 +39,7 @@ class Payments(models.Model):
         readonly=False,
     )
     telefono = fields.Char("Teléfono")
+    ref = fields.Char("Memo", help="Referencia del pago")
     credit_id = fields.Many2one("financial.credit", string="Crédito")
     cuota_fija = fields.Float(
         "Cuota fija", related="credit_id.cuota_fija", store=False, readonly=True
@@ -48,15 +50,9 @@ class Payments(models.Model):
 
     monto = fields.Float("Pago Total")
     balance = fields.Float("Balance Actual", compute="_get_balance", store=True)
-    deuda_actual = fields.Float(
-        "A pagar", compute="_get_deuda_actual", store=True
-    )
-    fecha = fields.Date(
-        "Fecha", default=lambda self: datetime.now(pytz.timezone(self.env.user.tz))
-    )
-    user_id = fields.Many2one(
-        "res.users", string="Vendedor", default=lambda self: self.env.uid, readonly=True
-    )
+    deuda_actual = fields.Float("A pagar", compute="_get_deuda_actual", store=True)
+    fecha = fields.Date("Fecha", default=lambda self: datetime.now(pytz.timezone(self.env.user.tz)))
+    user_id = fields.Many2one("res.users", string="Vendedor", default=lambda self: self.env.uid, readonly=True)
     notas = fields.Text("Notas")
     currency_id = fields.Many2one(
         "res.currency",
@@ -77,8 +73,13 @@ class Payments(models.Model):
         string="Pagos",
         related="credit_id.lineas_pagos_ids",
     )
+    usa_opciones_pago = fields.Boolean("Usa Opciones de pago", compute="set_opcion_pago", store=True)
 
     # Metodos de odoo
+    def set_opcion_pago(self):
+        valor = self.env['ir.config_parameter'].sudo().get_param('financial_credit.usa_opciones_pago')
+        for record in self:
+            record.usa_opciones_pago = bool(valor)
     @api.model
     def create(self, vals):
         if vals.get("number", ("Nuevo pago")) == ("Nuevo pago"):
@@ -97,7 +98,7 @@ class Payments(models.Model):
                         "No puedes borrar un documento de pago que ya esta validada o pagada"
                     )
                 )
-
+    """
     @api.constrains("monto")
     def validation_payment(self):
         for rec in self:
@@ -106,11 +107,12 @@ class Payments(models.Model):
                 raise UserError(
                     _("El monto ingresado no puede ser menor a la cuota fija")
                 )
-
+    """
     # Botones
     def registrar_pago(self):
         for record in self:
             # Facturas
+            
             invoice_capital = self.env["account.move"].search(
                 [
                     ("credito_id", "=", record.credit_id.id),
@@ -124,14 +126,11 @@ class Payments(models.Model):
                 ]
             )
 
-            lineas = self.env["lineas.credito"].search(
-                [("credito_id", "=", record.credit_id.id)]
-            )
+            lineas = self.env["lineas.credito"].search([("credito_id", "=", record.credit_id.id)])
 
             # Variables y listas para la lógica de la deuda, capital y interés acumulado
             cuota_fija = round(record.cuota_fija,2)
             monto = record.monto
-            restante = monto
             deuda_acumulada = lineas.filtered(lambda p: p.payment_state in ("pendiente", "pago_par","retrasado")).mapped("deuda_acum")
             pagos = [0 for i in range(len(deuda_acumulada))]
             interes_acumulado = lineas.filtered(lambda p: p.payment_state in ("pendiente", "pago_par","retrasado")).mapped("interes_acum")
@@ -141,67 +140,9 @@ class Payments(models.Model):
             pagos_de_interes = [0 for i in range(len(deuda_acumulada))]
             pagos_de_capital = [0 for i in range(len(deuda_acumulada))]        
             
-            """
-            Lo que se busca es almacenar el monto restante de un pago parcial, ya que un cliente puede abonar una cuota media parte de la que sigue
-            con las listas de interes_acumulado, capital_acumulado y deuda acumulado se logre hacer eso.
-            -Las deudas acumuladas es el mismo que las cuotas fijas, se usa para saber cuanto quedará debiendo el cliente para su proximo cobro
-            -Los pagos que se hagan se agregan al array de pagos para posteriormente sea mas facil agregarlos en la BD
+            """Logica para cada caso de flujo"""
+            recurso = self.forma_pago(monto, cuota_fija, deuda_acumulada, interes_acumulado,capital_acumulado, forma=record.flujo_pago)
             
-            Se divide la operacion en dos for, ya que la operacion de la deuda acumulada es independiente de los intereces y el capita acumulado
-            lo que se hace es lo siguiente:
-            
-            Deuda acumulada:
-                Si el restante que al inicio del for toma el valor del monto, es mayor o igual a la cuota fija, quiere decir que hay dinero
-                suficiente para saldar la deuda de la interación, por tanto el array deuda_acumulada se le asigna el valor 0, se registra
-                el pago realizado en el array pagos, dandole el valor de la cuota fija, y a la variable restante se resta la cuota fija.
-                En caso contrario, si el restante no mayor o igual a la cuota fija quiere decir que ya no hay dinero para saldar la deuda acumulada,
-                por tanto a la deuda acumulada se le resta el valor de la variable restante, es decir el valor que haya quedado de esa variable
-                y se registra en el array pagos el valor del restante puesto que ese es el valor pagado
-            
-            Interés y captial acumulado:
-                Lo que se hace en este for es verificar que el monto que el cliente este dado es suficiente para saldar el interes primeramente,
-                ya que la dinamica es primero pagar el interés y luego el capital.
-                entonces si el monto e suficiente, quiere decir que hay el dinero suficiente para saldar ese interés, se le resta 
-                a la variable monto el valor del interés de esa iteración y saldamos el interés asignando el valor 0 a ese array, pasamos al capital,
-                donde si verificamos que el valor del monto, es decir el sobrante despues de pagar el interés es suficiente para pagar el capital
-                si es asi entonces le restamos al monto el valor del capital de esa iteración y se asigna el valor 0 a ese array de capital.
-                Volvemos al interés y si no hay dinero suficiente para saldarlo, solo le restamos el valor del monto osea el restante de las otras
-                iteraciones y se le asigna al valor 0 al monto, puesto que se lo asignamos todo al interes
-                a continuación, en el capital, si el monto (restante de las otras operaciones) no es suficiente para saldarlo, le restamos el valor
-                del monto y se asigna el valor 0 al monto, ya se ocupo todo para saldar el capital
-            """
-            
-            # Saldar deuda_acumulada
-            for i in range(len(deuda_acumulada)):
-                if restante >= cuota_fija:
-                    deuda_acumulada[i] = 0
-                    pagos[i] = cuota_fija
-                    restante = float(Decimal(restante - cuota_fija).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
-                else:
-                    deuda_acumulada[i] = float(Decimal(deuda_acumulada[i] - restante).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
-                    pagos[i] = restante
-                    restante = 0
-                    break                   
-
-            # Saldar interes_acumulado y capital_acumulado
-            for i in range(len(interes_acumulado)):
-                if monto >= interes_acumulado[i]:
-                    monto = float(Decimal(monto - interes_acumulado[i]).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
-                    pagos_de_interes[i] = interes_acumulado[i]
-                    interes_acumulado[i] = 0
-                else:
-                    interes_acumulado[i] = float(Decimal(interes_acumulado[i] - monto).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
-                    pagos_de_interes[i] = monto
-                    monto = 0
-                if monto >= capital_acumulado[i]:
-                    monto = float(Decimal(monto - capital_acumulado[i]).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
-                    pagos_de_capital[i] = capital_acumulado[i]
-                    capital_acumulado[i] = 0
-                else:
-                    capital_acumulado[i] = float(Decimal(capital_acumulado[i] - monto).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
-                    pagos_de_capital[i] = monto
-                    monto = 0
-
             # Actualizar la tabla de pagos, con los datos obtenidos
             num = lineas.filtered(lambda cuotas: cuotas.payment_state in ("pendiente", "pago_par")).mapped("numero")
             n = 0
@@ -209,36 +150,37 @@ class Payments(models.Model):
                 datos = lineas.filtered(lambda cuotas: cuotas.payment_state in ("pendiente", "pago_par")and cuotas.numero == i)
                 datos.write(
                     {
-                        "deuda_acum": deuda_acumulada[n],
-                        "payment_amount": pagos[n],
-                        "capital_acum": capital_acumulado[n],
-                        "interes_acum": interes_acumulado[n],
+                        "deuda_acum": recurso['deuda_acumulada'][n],
+                        "payment_amount": recurso['pagos'][n],
+                        "capital_acum": recurso['capital_acumulado'][n],
+                        "interes_acum": recurso['interes_acumulado'][n],
                     }
                 )
                 n += 1
 
             # Pagos
-            pago_capital = {
-                "reconciled_invoice_ids": [(4, invoice_capital.id)],
-                "partner_id": record.cliente_id.id,
-                "amount": sum(pagos_de_capital),
-                "date": record.fecha,
-                "journal_id": record.journal_id.id,
-                "payment_type": "inbound",
-                "ref": record.number + " (Capital)",
-            }
-            pago_interes = {
-                "reconciled_invoice_ids": [(4, invoice_interes.id)],
-                "partner_id": record.cliente_id.id,
-                "amount": sum(pagos_de_interes),
-                "date": record.fecha,
-                "journal_id": record.journal_id.id,
-                "payment_type": "inbound",
-                "ref": record.number + " (Interés)",
-            }
-            
-            record.credit_id.payment_register(pago_interes, invoice_interes)
-            record.credit_id.payment_register(pago_capital, invoice_capital)
+            if (sum(recurso['pagos_de_capital']) > 0):
+                pago_capital = {
+                    "reconciled_invoice_ids": [(4, invoice_capital.id)],
+                    "partner_id": record.cliente_id.id,
+                    "amount": sum(pagos_de_capital),
+                    "date": record.fecha,
+                    "journal_id": record.journal_id.id,
+                    "payment_type": "inbound",
+                    "ref": record.ref
+                }
+                record.credit_id.payment_register(pago_interes, invoice_interes)
+            if (sum(recurso['pago_interes']) > 0):
+                pago_interes = {
+                    "reconciled_invoice_ids": [(4, invoice_interes.id)],
+                    "partner_id": record.cliente_id.id,
+                    "amount": sum(pagos_de_interes),
+                    "date": record.fecha,
+                    "journal_id": record.journal_id.id,
+                    "payment_type": "inbound",
+                    "ref": record.ref
+                }
+                record.credit_id.payment_register(pago_capital, invoice_capital)
             record.state = "pagado"
 
             # Si la factura de capital y interes esta pagada, Pasar a pagado el crédito
@@ -304,5 +246,128 @@ class Payments(models.Model):
             else:
                 pass
 
+    def forma_pago(self,monto:float,cuota_fija:float,deuda_acumulada:list, interes_acumulado:list,capital_acumulado:list, forma:str='normal') -> dict:
+        
+        """
+        FORMA DE PAGO
+        :param monto: Monto que el cliente va a pagar
+        :param cuota_fija: Cuota fija del crédito
+        :param deuda_acumulada: Deuda acumulada del cliente
+        :param interes_acumulado: Interés acumulado del cliente
+        :param capital_acumulado: Capital acumulado del cliente
+        :param forma: Forma de pago
+        """
 
-# Codigo by Oscar Rugama
+        if forma == 'normal':
+            restante = monto
+            pagos = [0 for i in range(len(deuda_acumulada))]
+            pagos_de_interes = [0 for i in range(len(deuda_acumulada))]
+            pagos_de_capital = [0 for i in range(len(deuda_acumulada))]
+            for i in range(len(deuda_acumulada)):
+                if restante >= cuota_fija:
+                    deuda_acumulada[i] = 0
+                    pagos[i] = cuota_fija
+                    restante = float(Decimal(restante - cuota_fija).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
+                else:
+                    deuda_acumulada[i] = float(Decimal(deuda_acumulada[i] - restante).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
+                    pagos[i] = restante
+                    restante = 0
+                    break                   
+
+            # Saldar interes_acumulado y capital_acumulado
+            for i in range(len(interes_acumulado)):
+                if monto >= interes_acumulado[i]:
+                    monto = float(Decimal(monto - interes_acumulado[i]).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
+                    pagos_de_interes[i] = interes_acumulado[i]
+                    interes_acumulado[i] = 0
+                else:
+                    interes_acumulado[i] = float(Decimal(interes_acumulado[i] - monto).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
+                    pagos_de_interes[i] = monto
+                    monto = 0
+                if monto >= capital_acumulado[i]:
+                    monto = float(Decimal(monto - capital_acumulado[i]).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
+                    pagos_de_capital[i] = capital_acumulado[i]
+                    capital_acumulado[i] = 0
+                else:
+                    capital_acumulado[i] = float(Decimal(capital_acumulado[i] - monto).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
+                    pagos_de_capital[i] = monto
+                    monto = 0
+
+            return {
+                "pagos": pagos,
+                "deuda_acumulada":deuda_acumulada,
+                "pagos_de_interes": pagos_de_interes,
+                "pagos_de_capital": pagos_de_capital,
+                "interes_acumulado": interes_acumulado,
+                "capital_acumulado": capital_acumulado
+            }
+    
+        elif forma == 'interes':
+            restante = monto
+            pagos = [0 for i in range(len(deuda_acumulada))]
+            pagos_de_interes = [0 for i in range(len(deuda_acumulada))]
+            pagos_de_capital = [0 for i in range(len(deuda_acumulada))]
+            for i in range(len(deuda_acumulada)):
+                if restante >= cuota_fija:
+                    deuda_acumulada[i] = 0
+                    pagos[i] = cuota_fija
+                    restante = float(Decimal(restante - cuota_fija).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
+                else:
+                    deuda_acumulada[i] = float(Decimal(deuda_acumulada[i] - restante).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
+                    pagos[i] = restante
+                    restante = 0
+                    break                   
+
+            # Saldar interes_acumulado y capital_acumulado
+            for i in range(len(interes_acumulado)):
+                if monto >= interes_acumulado[i]:
+                    monto = float(Decimal(monto - interes_acumulado[i]).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
+                    pagos_de_interes[i] = interes_acumulado[i]
+                    interes_acumulado[i] = 0
+                else:
+                    interes_acumulado[i] = float(Decimal(interes_acumulado[i] - monto).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
+                    pagos_de_interes[i] = monto
+                    monto = 0
+
+            return {
+                "pagos": pagos,
+                "deuda_acumulada":deuda_acumulada,
+                "pagos_de_interes": pagos_de_interes,
+                "pagos_de_capital": pagos_de_capital,
+                "interes_acumulado": interes_acumulado,
+                "capital_acumulado": capital_acumulado
+            }
+        elif forma == 'capital':
+            restante = monto
+            pagos = [0 for i in range(len(deuda_acumulada))]
+            pagos_de_interes = [0 for i in range(len(deuda_acumulada))]
+            pagos_de_capital = [0 for i in range(len(deuda_acumulada))]
+            for i in range(len(deuda_acumulada)):
+                if restante >= cuota_fija:
+                    deuda_acumulada[i] = 0
+                    pagos[i] = cuota_fija
+                    restante = float(Decimal(restante - cuota_fija).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
+                else:
+                    deuda_acumulada[i] = float(Decimal(deuda_acumulada[i] - restante).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
+                    pagos[i] = restante
+                    restante = 0
+                    break                   
+
+            # Saldar interes_acumulado y capital_acumulado
+            for i in range(len(capital_acumulado)):
+                if monto >= capital_acumulado[i]:
+                    monto = float(Decimal(monto - capital_acumulado[i]).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
+                    pagos_de_capital[i] = capital_acumulado[i]
+                    capital_acumulado[i] = 0
+                else:
+                    capital_acumulado[i] = float(Decimal(capital_acumulado[i] - monto).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
+                    pagos_de_capital[i] = monto
+                    monto = 0
+            return {
+                "pagos": pagos,
+                "deuda_acumulada":deuda_acumulada,
+                "pagos_de_interes": pagos_de_interes,
+                "pagos_de_capital": pagos_de_capital,
+                "capital_acumulado": capital_acumulado,
+                "interes_acumulado": interes_acumulado,
+            }

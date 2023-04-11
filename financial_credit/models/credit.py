@@ -96,6 +96,13 @@ class FinancialCredit(models.Model):
     
 
     # Metodos
+    @api.constrains("monto")
+    def validation_date(self):
+        for rec in self:
+            if rec.fecha_primer_pago < rec.fecha:
+                raise UserError(
+                    _("La fecha del primer pago no puede ser una fecha anterior a la del crédito")
+                )
     @api.model
     def create(self, vals):
         if vals.get("numero", ("Nuevo")) == ("Nuevo") and vals["tipo_doc"] == "ven":
@@ -378,6 +385,8 @@ class FinancialCredit(models.Model):
                     record.cuota_fija = record.deuda_total / record.cuota_id.numero
                 else:
                     record.cuota_fija = 0
+            else:
+                pass
 
     @api.depends("tipo_amortiazacion","producto_id", "monto")
     def _get_precio(self):
@@ -387,6 +396,8 @@ class FinancialCredit(models.Model):
                     record.precio = record.monto
                 else:
                     record.precio = record.producto_id.list_prince
+            else:
+                pass
 
     @api.depends("monto", "monto_inicial")
     def cal_total(self):
@@ -398,6 +409,8 @@ class FinancialCredit(models.Model):
         for record in self:
             if record.tipo_amortiazacion =="lineal":
                 record.deuda_total = float(Decimal(str(record.total_interes)) + Decimal(str(record.total)))
+            else:
+                pass
     
     @api.depends("producto_id")
     def cal_venta_servicio(self):

@@ -50,10 +50,10 @@ class LineasCredito(models.Model):
             if record.deuda_acum == 0:
                 record.payment_state = "pagado"
                 record.payment_date = datetime.now(pytz.timezone(self.env.user.tz))
-            elif record.deuda_acum > 0 and record.deuda_acum < round(record.cuota_fija,2):
+            elif record.deuda_acum > 0 and record.deuda_acum < record.cuota_fija:
                 record.payment_state = "pago_par"
                 record.payment_date = datetime.now(pytz.timezone(self.env.user.tz))
-            elif record.deuda_acum == round(record.cuota_fija,2):
+            elif record.deuda_acum == record.cuota_fija:
                 record.payment_state = "pendiente"
     
     #Enviar Notificación de recordatorio de pago
