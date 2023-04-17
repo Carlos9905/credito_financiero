@@ -80,13 +80,14 @@ class Payments(models.Model):
         valor = self.env['ir.config_parameter'].sudo().get_param('financial_credit.usa_opciones_pago')
         for record in self:
             record.usa_opciones_pago = bool(valor)
-    @api.model
+    
+    """@api.model
     def create(self, vals):
-        if (vals.get("number") == "/") and vals.get("state") == "borrador":
+        if (vals.get("number") == "Borrador") and vals.get("state") == "borrador":
             vals["number"] = "Borrador"#self.env["ir.sequence"].next_by_code("payment.credit") or ("Nuevo pago")
         elif (vals.get("number") == "Nuevo pago") and vals.get("state") == "borrador":
             vals["number"] = "Borrador"
-        return super(Payments, self).create(vals)
+        return super(Payments, self).create(vals)"""
 
     @api.ondelete(at_uninstall=False)
     def _borrar_credito(self):
@@ -224,8 +225,11 @@ class Payments(models.Model):
 
     def action_confirm(self):
         for record in self:
-            record.state = "validado"
-            record.number = self.env["ir.sequence"].next_by_code("payment.credit") or ("Nuevo pago")
+            if record.monto > 0:
+                record.state = "validado"
+                record.number = self.env["ir.sequence"].next_by_code("payment.credit")
+            else:
+                raise UserError(_("Monto a pagar no puede ser 0"))
 
     def imprimir_ticket(self):
         return self.env.ref("financial_credit.action_ticket_pago").report_action(self)
@@ -268,7 +272,7 @@ class Payments(models.Model):
                 pagos_prox = pagos.filtered(lambda p: p.payment_state != "pagado")
                 _pagos = pagos_prox.mapped("deuda_acum")
                 record.deuda_actual = round(_pagos[0], 2)
-                record.monto = record.deuda_actual
+                #record.monto = record.deuda_actual
             else:
                 pass
 

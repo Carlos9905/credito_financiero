@@ -174,7 +174,8 @@ class FinancialCredit(models.Model):
             "default_type_doc":"pago_credi",
             "default_telefono":self.telefono,
             "default_cliente_id":self.cliente_id.id,
-            "default_number":"/"
+            #"default_state":"borrador",
+            "default_number":"Borrador"
         }
         return action
     
