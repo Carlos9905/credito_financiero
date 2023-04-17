@@ -51,7 +51,7 @@
                             <field name="fecha" attrs="{'readonly':[('state', '=', 'pagado')]}"/>
                             <field name="balance" widget='monetary' options="{'currency_field': 'currency_id'}"/>
                             <field name="deuda_actual" widget='monetary' options="{'currency_field': 'currency_id'}"/>
-                            <field name="flujo_pago" attrs="{'readonly':[('state', '=', 'pagado')],'invisible':[('usa_opciones_pago', '!=', True)],'required':[('usa_opciones_pago', '=', True)]}"/>
+                            <field name="flujo_pago" required="1"/>
                             <field name="monto" widget='monetary' options="{'currency_field': 'currency_id'}" attrs="{'readonly':[('state', '=', 'pagado')]}" required="1"/>
                             <field name="journal_id" attrs="{'readonly':[('state', '=', 'pagado')]}" domain="[('type', 'in',['bank','cash'])]"/>
                             <field name="ref" attrs="{'readonly':[('state', '=', 'pagado')]}" required="1"/>

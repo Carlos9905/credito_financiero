@@ -24,11 +24,10 @@ class Payments(models.Model):
             ("pagado", "Pagado"),
         ],
     )
-    type_doc = fields.Selection(
-        string="Tipo de documento",
-        selection=[("pago_credi", "Pago por crédito"), ("pago", "Pago normal")],
-    )
-    flujo_pago = fields.Selection(string='Opciones de pago', selection=[('normal', 'Normal'),('interes', 'Solo Interés'),('capital', 'Solo Capital')])
+    type_doc = fields.Selection(string="Tipo de documento",selection=[("pago_credi", "Pago por crédito"), ("pago", "Pago normal")])
+    flujo_pago = fields.Selection(string='Opciones de pago', selection=[
+        ('normal', 'Normal'),('interes', 'Solo Interés'),('capital', 'Solo Capital')
+    ], default='normal')
 
     number = fields.Char("Número", default="Nuevo pago", readonly=True)
     cliente_id = fields.Many2one(
@@ -132,7 +131,6 @@ class Payments(models.Model):
             cuota_fija = round(record.cuota_fija,2)
             monto = record.monto
             deuda_acumulada = lineas.filtered(lambda p: p.payment_state in ("pendiente", "pago_par","retrasado")).mapped("deuda_acum")
-            pagos = [0 for i in range(len(deuda_acumulada))]
             interes_acumulado = lineas.filtered(lambda p: p.payment_state in ("pendiente", "pago_par","retrasado")).mapped("interes_acum")
             capital_acumulado = lineas.filtered(lambda p: p.payment_state in ("pendiente", "pago_par","retrasado")).mapped("capital_acum")
 
@@ -148,14 +146,33 @@ class Payments(models.Model):
             n = 0
             for i in num:
                 datos = lineas.filtered(lambda cuotas: cuotas.payment_state in ("pendiente", "pago_par")and cuotas.numero == i)
-                datos.write(
-                    {
-                        "deuda_acum": recurso['deuda_acumulada'][n],
-                        "payment_amount": recurso['pagos'][n],
-                        "capital_acum": recurso['capital_acumulado'][n],
-                        "interes_acum": recurso['interes_acumulado'][n],
-                    }
-                )
+                if record.flujo_pago == 'normal':
+                    datos.write(
+                        {
+                            "deuda_acum": recurso['deuda_acumulada'][n],
+                            "payment_amount": recurso['pagos'][n],
+                            "capital_acum": recurso['capital_acumulado'][n],
+                            "interes_acum": recurso['interes_acumulado'][n],
+                        }
+                    )
+                elif record.flujo_pago == 'interes':
+                    datos.write(
+                        {
+                            "deuda_acum": recurso['deuda_acumulada'][n],
+                            "payment_amount": recurso['pagos_de_interes'][n],
+                            "capital_acum": recurso['capital_acumulado'][n],
+                            "interes_acum": recurso['interes_acumulado'][n],
+                        }
+                    )
+                else:
+                    datos.write(
+                        {
+                            "deuda_acum": recurso['deuda_acumulada'][n],
+                            "payment_amount": recurso['pagos_de_capital'][n],
+                            "capital_acum": recurso['capital_acumulado'][n],
+                            "interes_acum": recurso['interes_acumulado'][n],
+                        }
+                    )
                 n += 1
 
             # Pagos
@@ -163,24 +180,24 @@ class Payments(models.Model):
                 pago_capital = {
                     "reconciled_invoice_ids": [(4, invoice_capital.id)],
                     "partner_id": record.cliente_id.id,
-                    "amount": sum(pagos_de_capital),
-                    "date": record.fecha,
-                    "journal_id": record.journal_id.id,
-                    "payment_type": "inbound",
-                    "ref": record.ref
-                }
-                record.credit_id.payment_register(pago_interes, invoice_interes)
-            if (sum(recurso['pago_interes']) > 0):
-                pago_interes = {
-                    "reconciled_invoice_ids": [(4, invoice_interes.id)],
-                    "partner_id": record.cliente_id.id,
-                    "amount": sum(pagos_de_interes),
+                    "amount": sum(recurso['pagos_de_capital']),
                     "date": record.fecha,
                     "journal_id": record.journal_id.id,
                     "payment_type": "inbound",
                     "ref": record.ref
                 }
                 record.credit_id.payment_register(pago_capital, invoice_capital)
+            if (sum(recurso['pagos_de_interes']) > 0):
+                pago_interes = {
+                    "reconciled_invoice_ids": [(4, invoice_interes.id)],
+                    "partner_id": record.cliente_id.id,
+                    "amount": sum(recurso['pagos_de_interes']),
+                    "date": record.fecha,
+                    "journal_id": record.journal_id.id,
+                    "payment_type": "inbound",
+                    "ref": record.ref
+                }
+                record.credit_id.payment_register(pago_interes, invoice_interes)
             record.state = "pagado"
 
             # Si la factura de capital y interes esta pagada, Pasar a pagado el crédito
@@ -211,22 +228,15 @@ class Payments(models.Model):
         for record in self:
             # Facturas
             if record.credit_id:
-                invoice_capital = self.env["account.move"].search(
-                    [
-                        ("credito_id", "=", record.credit_id.id),
-                        ("payment_reference", "=", record.credit_id.numero + "(Capital)")
-                    ]
-                )
-                invoice_interes = self.env["account.move"].search(
-                    [
-                        ("credito_id", "=", record.credit_id.id),
-                        ("payment_reference", "=", record.credit_id.numero + "(Interes)"),
-                    ]
-                )
-                
-                record.balance = (
-                    invoice_capital.amount_residual + invoice_interes.amount_residual
-                )
+                invoice_capital = self.env["account.move"].search([
+                    ("credito_id", "=", record.credit_id.id),
+                    ("payment_reference", "=", record.credit_id.numero + "(Capital)")
+                ])
+                invoice_interes = self.env["account.move"].search([
+                    ("credito_id", "=", record.credit_id.id),
+                    ("payment_reference", "=", record.credit_id.numero + "(Interes)"),
+                ])
+                record.balance = (invoice_capital.amount_residual + invoice_interes.amount_residual)
             else:
                 pass
     
@@ -234,11 +244,9 @@ class Payments(models.Model):
     def _get_deuda_actual(self):
         for record in self:
             if record.credit_id:
-                pagos = self.env["lineas.credito"].search(
-                    [
-                        ("credito_id", "=", record.credit_id.id),
-                    ]
-                )
+                pagos = self.env["lineas.credito"].search([
+                    ("credito_id", "=", record.credit_id.id),
+                ])
                 pagos_prox = pagos.filtered(lambda p: p.payment_state != "pagado")
                 _pagos = pagos_prox.mapped("deuda_acum")
                 record.deuda_actual = round(_pagos[0], 2)
@@ -249,7 +257,7 @@ class Payments(models.Model):
     def forma_pago(self,monto:float,cuota_fija:float,deuda_acumulada:list, interes_acumulado:list,capital_acumulado:list, forma:str='normal') -> dict:
         
         """
-        FORMA DE PAGO
+        FORMAS DE PAGOS
         :param monto: Monto que el cliente va a pagar
         :param cuota_fija: Cuota fija del crédito
         :param deuda_acumulada: Deuda acumulada del cliente
@@ -272,7 +280,7 @@ class Payments(models.Model):
                     deuda_acumulada[i] = float(Decimal(deuda_acumulada[i] - restante).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
                     pagos[i] = restante
                     restante = 0
-                    break                   
+                    break
 
             # Saldar interes_acumulado y capital_acumulado
             for i in range(len(interes_acumulado)):
@@ -307,6 +315,7 @@ class Payments(models.Model):
             pagos = [0 for i in range(len(deuda_acumulada))]
             pagos_de_interes = [0 for i in range(len(deuda_acumulada))]
             pagos_de_capital = [0 for i in range(len(deuda_acumulada))]
+            """
             for i in range(len(deuda_acumulada)):
                 if restante >= cuota_fija:
                     deuda_acumulada[i] = 0
@@ -317,12 +326,13 @@ class Payments(models.Model):
                     pagos[i] = restante
                     restante = 0
                     break                   
-
+            """
             # Saldar interes_acumulado y capital_acumulado
             for i in range(len(interes_acumulado)):
                 if monto >= interes_acumulado[i]:
                     monto = float(Decimal(monto - interes_acumulado[i]).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
                     pagos_de_interes[i] = interes_acumulado[i]
+                    deuda_acumulada[i] -= interes_acumulado[i]
                     interes_acumulado[i] = 0
                 else:
                     interes_acumulado[i] = float(Decimal(interes_acumulado[i] - monto).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
@@ -342,6 +352,7 @@ class Payments(models.Model):
             pagos = [0 for i in range(len(deuda_acumulada))]
             pagos_de_interes = [0 for i in range(len(deuda_acumulada))]
             pagos_de_capital = [0 for i in range(len(deuda_acumulada))]
+            """
             for i in range(len(deuda_acumulada)):
                 if restante >= cuota_fija:
                     deuda_acumulada[i] = 0
@@ -351,13 +362,15 @@ class Payments(models.Model):
                     deuda_acumulada[i] = float(Decimal(deuda_acumulada[i] - restante).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
                     pagos[i] = restante
                     restante = 0
-                    break                   
+                    break
+            """               
 
             # Saldar interes_acumulado y capital_acumulado
             for i in range(len(capital_acumulado)):
                 if monto >= capital_acumulado[i]:
                     monto = float(Decimal(monto - capital_acumulado[i]).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
                     pagos_de_capital[i] = capital_acumulado[i]
+                    deuda_acumulada[i] -= capital_acumulado[i]
                     capital_acumulado[i] = 0
                 else:
                     capital_acumulado[i] = float(Decimal(capital_acumulado[i] - monto).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))

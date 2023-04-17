@@ -2,6 +2,31 @@
 <odoo>
     <data>
         <!--Email template -->
+        <record id="email_template_credito_solicitud_aprobacion" model="mail.template">
+            <field name="name">Cŕedito: Solicitar Crédito</field>
+            <field name="model_id" ref="financial_credit.model_financial_credit"/>
+            <field name="email_from">{{ (object.vendedor.email_formatted or user.email_formatted) }}</field>
+            <field name="partner_to"></field>
+            <field name="subject">Solicitud de aprobación (Número {{ object.numero or 'n/a' }})</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                        Me pongo en contacto con usted en relación con el documento que le envié para su revisión y aprobación
+                        <br />
+                        <br />
+                            Del siguiente documento. 
+                        <div style="margin: 16px 0px 16px 0px;">
+                            <a t-attf-href="{{ object.get_base_url() }}/web#id={{ object.id }}{{ object._get_url_base_model_str() }}" target="_blank" style="background-color: #875A7B; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; border-radius: 5px; font-size:13px;"> <span t-out="object.numero or ''" contenteditable="false" oe-keep-contenteditable="">CREDIT-0001-23</span> </a>
+                        </div>
+                        <br />
+                        <br />
+                            Agradezco de antemano su tiempo y consideración en este asunto.
+                        <br />
+                        <br />
+                    </p>
+                </div>
+            </field>
+        </record>
         <record id="email_template_credito_aprobado" model="mail.template">
             <field name="name">Cŕedito: Aprobar crédito</field>
             <field name="model_id" ref="financial_credit.model_financial_credit"/>

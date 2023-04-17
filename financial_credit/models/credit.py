@@ -54,11 +54,12 @@ class FinancialCredit(models.Model):
     
     habiliar_solicitud = fields.Boolean("Solicitud")
     venta_servicio = fields.Boolean("Venta de servicio", compute="cal_venta_servicio", store=True)
-    documentos = fields.Boolean("Documentos", compute="verificar_documentos", store=True, copy=False, defualt=False)
+    documentos = fields.Boolean("Documentos", compute="verificar_documentos", store=True, copy=False, default=False)
 
     numero = fields.Char(string="Orden de Crédito", default="Nuevo", readonly=True)
     numero_serie = fields.Char("Número de serie")
     telefono = fields.Char("Teléfono")
+    #url_roo_model = fields.Char("URL Record", compute="_get_url_base_model_str", store=True, copy=False)
     
     fecha = fields.Date("Fecha", default=lambda self: datetime.now(pytz.timezone(self.env.user.tz)))
     fecha_primer_pago = fields.Date("Fecha del primer pago")
@@ -210,9 +211,35 @@ class FinancialCredit(models.Model):
 
     def action_solicitud(self):
         for record in self:
-            # TODO:Enviar un correo en esta funcion
-            record.state = "solicitud"
-            record.habiliar_solicitud = False
+            self.ensure_one()
+            template_id = self.env['mail.template'].search([('name', '=', 'Cŕedito: Solicitar Crédito')]).id
+            
+            ctx = {
+                'default_model': 'financial.credit',
+                'default_res_id': self.ids[0],
+                'default_use_template': bool(template_id),
+                'default_template_id': template_id,
+                'default_composition_mode': 'comment',
+                'mark_so_as_sent': True,
+                'custom_layout': "mail.mail_notification_paynow",
+                'force_email': True,
+            }
+            return {
+                'type': 'ir.actions.act_window',
+                'view_mode': 'form',
+                'res_model': 'mail.compose.message',
+                'views': [(False, 'form')],
+                'view_id': False,
+                'target': 'new',
+                'context': ctx,
+            }
+    
+    @api.returns('mail.message', lambda value: value.id)
+    def message_post(self, **kwargs):
+        if self.env.context.get('mark_so_as_sent'):
+            self.state = "solicitud"
+            self.habiliar_solicitud = False
+        return super(FinancialCredit, self.with_context(mail_post_autofollow=self.env.context.get('mail_post_autofollow', True))).message_post(**kwargs)
 
     def action_aprobado(self):
         for record in self:
@@ -356,6 +383,12 @@ class FinancialCredit(models.Model):
             record.state = "pendiente"
 
     # Calculos
+    def _get_url_base_model_str(self):
+        action = self.env.ref("financial_credit.menu_action_financial_credit").id
+        menu = self.env.ref("financial_credit.menu_financial_credit_root").id
+        #record.url_roo_model = "&menu_id="+str(menu)+"cids=1&action="+str(action)+"&model=financial.credit&view_type=form"
+        return "&menu_id="+str(menu)+"cids=1&action="+str(action)+"&model=financial.credit&view_type=form"
+
     def verificar_documentos(self):
         for record in self:
             docs = self.env['documents.credit'].search([('credito_id', '=', record.id)])

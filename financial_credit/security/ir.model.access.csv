@@ -7,3 +7,4 @@ access_frecuencia_credito_user,financial_credit.frecuencia.credito,model_frecuen
 access_payment_credit_user,undefined.payment.credit,model_payment_credit,base.group_user,1,1,1,1
 access_documents_credit_user,financial_credit.documents.credit,model_documents_credit,base.group_user,1,1,1,1
 access_wizard_reprogramar_cuotas_user,financial_credit.wizard.reprogramar.cuotas,model_wizard_reprogramar_cuotas,base.group_user,1,1,1,1
+access_cron_financial_credit_user,financial_credit.cron.financial.credit,model_cron_financial_credit,base.group_user,1,1,1,1

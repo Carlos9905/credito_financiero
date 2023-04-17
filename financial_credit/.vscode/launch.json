@@ -1,0 +1,28 @@
+{
+    // Use IntelliSense para saber los atributos posibles.
+    // Mantenga el puntero para ver las descripciones de los existentes atributos.
+    // Para más información, visite: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Odoo-15c",
+            "type": "python",
+            "request": "launch",
+            "program": "${pathSeparator}/home/carlos/odoo-community/odoo/odoo-bin",
+            "args": [
+                "-c", "/home/carlos/odoo-community/odoo.conf"
+            ],
+            "console": "integratedTerminal",
+        },
+        {
+            "name": "Odoo-15e",
+            "type": "python",
+            "request": "launch",
+            "program": "${pathSeparator}/home/carlos/odoo-enterprise/server/odoo-bin",
+            "args": [
+                "-c", "/home/carlos/odoo-enterprise/server/odoo.conf"
+            ],
+            "console": "integratedTerminal",
+        }
+    ]
+}
