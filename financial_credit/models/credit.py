@@ -152,25 +152,29 @@ class FinancialCredit(models.Model):
         }
 
     def crear_pago(self):
-        pagos = self.env["payment.credit"].create(
-            {
-                "credit_id": self.id,
-                "type_doc": "pago_credi",
-                "telefono": self.telefono,
-                "cliente_id": self.cliente_id.id,
-            }
-        )
+        #pagos = self.env["payment.credit"].create(
+            #{
+                #"credit_id": self.id,
+                #type_doc": "pago_credi",
+                #"telefono": self.telefono,
+                #"cliente_id": self.cliente_id.id,
+            #}
+        #)
         action = {
             "name": "Nuevo pago de " + self.cliente_id.name,
             "res_model": "payment.credit",
             "type": "ir.actions.act_window",
-            "domain": [("credit_id", "=", pagos.id)],
+            "domain": [("credit_id", "=", self.id)],
             "view_mode": "form",
-            "res_id": pagos.id,
+            #res_id": pagos.id,
         }
         action["context"] = {
             "search_default_credit_id": self.id,
             "default_credit_id": self.id,
+            "default_type_doc":"pago_credi",
+            "default_telefono":self.telefono,
+            "default_cliente_id":self.cliente_id.id,
+            "default_number":"/"
         }
         return action
     

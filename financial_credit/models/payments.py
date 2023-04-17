@@ -23,6 +23,7 @@ class Payments(models.Model):
             ("validado", "Validado"),
             ("pagado", "Pagado"),
         ],
+        default="borrador"
     )
     type_doc = fields.Selection(string="Tipo de documento",selection=[("pago_credi", "Pago por crédito"), ("pago", "Pago normal")])
     flujo_pago = fields.Selection(string='Opciones de pago', selection=[
@@ -81,11 +82,10 @@ class Payments(models.Model):
             record.usa_opciones_pago = bool(valor)
     @api.model
     def create(self, vals):
-        if vals.get("number", ("Nuevo pago")) == ("Nuevo pago"):
-            vals["number"] = self.env["ir.sequence"].next_by_code("payment.credit") or (
-                "Nuevo pago"
-            )
-        vals["state"] = "borrador"
+        if (vals.get("number") == "/") and vals.get("state") == "borrador":
+            vals["number"] = "Borrador"#self.env["ir.sequence"].next_by_code("payment.credit") or ("Nuevo pago")
+        elif (vals.get("number") == "Nuevo pago") and vals.get("state") == "borrador":
+            vals["number"] = "Borrador"
         return super(Payments, self).create(vals)
 
     @api.ondelete(at_uninstall=False)
@@ -97,6 +97,31 @@ class Payments(models.Model):
                         "No puedes borrar un documento de pago que ya esta validada o pagada"
                     )
                 )
+    
+    @api.constrains("flujo_pago")
+    def validation_date(self):
+        for record in self:
+            invoice_capital = self.env["account.move"].search(
+                [
+                    ("credito_id", "=", record.credit_id.id),
+                    ("payment_reference", "=", record.credit_id.numero + "(Capital)")
+                ]
+            )
+            invoice_interes = self.env["account.move"].search(
+                [
+                    ("credito_id", "=", record.credit_id.id),
+                    ("payment_reference", "=", record.credit_id.numero + "(Interes)"),
+                ]
+            )
+            if invoice_interes.amount_residual == 0.0 and record.flujo_pago in ("normal", "interes"):
+                raise UserError(
+                    _("La factura de interes ya está cancelada, por favor seleccione otra opción de pago")
+                )
+            elif invoice_capital.amount_residual == 0.0 and record.flujo_pago in ("normal", "capital"):
+                raise UserError(
+                    _("La factura de capital ya está cancelada, por favor seleccione otra opción de pago")
+                )
+
     """
     @api.constrains("monto")
     def validation_payment(self):
@@ -111,7 +136,6 @@ class Payments(models.Model):
     def registrar_pago(self):
         for record in self:
             # Facturas
-            
             invoice_capital = self.env["account.move"].search(
                 [
                     ("credito_id", "=", record.credit_id.id),
@@ -132,11 +156,7 @@ class Payments(models.Model):
             monto = record.monto
             deuda_acumulada = lineas.filtered(lambda p: p.payment_state in ("pendiente", "pago_par","retrasado")).mapped("deuda_acum")
             interes_acumulado = lineas.filtered(lambda p: p.payment_state in ("pendiente", "pago_par","retrasado")).mapped("interes_acum")
-            capital_acumulado = lineas.filtered(lambda p: p.payment_state in ("pendiente", "pago_par","retrasado")).mapped("capital_acum")
-
-            # Lista para crear pagos
-            pagos_de_interes = [0 for i in range(len(deuda_acumulada))]
-            pagos_de_capital = [0 for i in range(len(deuda_acumulada))]        
+            capital_acumulado = lineas.filtered(lambda p: p.payment_state in ("pendiente", "pago_par","retrasado")).mapped("capital_acum")       
             
             """Logica para cada caso de flujo"""
             recurso = self.forma_pago(monto, cuota_fija, deuda_acumulada, interes_acumulado,capital_acumulado, forma=record.flujo_pago)
@@ -145,34 +165,31 @@ class Payments(models.Model):
             num = lineas.filtered(lambda cuotas: cuotas.payment_state in ("pendiente", "pago_par")).mapped("numero")
             n = 0
             for i in num:
-                datos = lineas.filtered(lambda cuotas: cuotas.payment_state in ("pendiente", "pago_par")and cuotas.numero == i)
+                datos = lineas.filtered(lambda cuotas: cuotas.payment_state in ("pendiente", "pago_par") and cuotas.numero == i)
+                # NORMAL
                 if record.flujo_pago == 'normal':
-                    datos.write(
-                        {
-                            "deuda_acum": recurso['deuda_acumulada'][n],
-                            "payment_amount": recurso['pagos'][n],
-                            "capital_acum": recurso['capital_acumulado'][n],
-                            "interes_acum": recurso['interes_acumulado'][n],
-                        }
-                    )
+                    datos.write({
+                        "deuda_acum": recurso['deuda_acumulada'][n],
+                        "payment_amount": recurso['pagos'][n],
+                        "capital_acum": recurso['capital_acumulado'][n],
+                        "interes_acum": recurso['interes_acumulado'][n],
+                    })
+                # INTERES
                 elif record.flujo_pago == 'interes':
-                    datos.write(
-                        {
-                            "deuda_acum": recurso['deuda_acumulada'][n],
-                            "payment_amount": recurso['pagos_de_interes'][n],
-                            "capital_acum": recurso['capital_acumulado'][n],
-                            "interes_acum": recurso['interes_acumulado'][n],
-                        }
-                    )
+                    datos.write({
+                        "deuda_acum": recurso['deuda_acumulada'][n],
+                        "payment_amount": recurso['pagos_de_interes'][n] if datos.payment_amount == 0.0 else datos.payment_amount + recurso['pagos_de_interes'][n],
+                        "capital_acum": recurso['capital_acumulado'][n],
+                        "interes_acum": recurso['interes_acumulado'][n],
+                    })
+                # CAPITAL
                 else:
-                    datos.write(
-                        {
-                            "deuda_acum": recurso['deuda_acumulada'][n],
-                            "payment_amount": recurso['pagos_de_capital'][n],
-                            "capital_acum": recurso['capital_acumulado'][n],
-                            "interes_acum": recurso['interes_acumulado'][n],
-                        }
-                    )
+                    datos.write({
+                        "deuda_acum": recurso['deuda_acumulada'][n],
+                        "payment_amount": recurso['pagos_de_capital'][n] if datos.payment_amount == 0.0 else datos.payment_amount + recurso['pagos_de_capital'][n],
+                        "capital_acum": recurso['capital_acumulado'][n],
+                        "interes_acum": recurso['interes_acumulado'][n],
+                    })
                 n += 1
 
             # Pagos
@@ -180,7 +197,7 @@ class Payments(models.Model):
                 pago_capital = {
                     "reconciled_invoice_ids": [(4, invoice_capital.id)],
                     "partner_id": record.cliente_id.id,
-                    "amount": sum(recurso['pagos_de_capital']),
+                    "amount": sum(recurso['pagos_de_capital']) if invoice_capital.amount_residual > 0.5 else sum(recurso['pagos_de_capital']) + invoice_capital.amount_residual,
                     "date": record.fecha,
                     "journal_id": record.journal_id.id,
                     "payment_type": "inbound",
@@ -191,7 +208,7 @@ class Payments(models.Model):
                 pago_interes = {
                     "reconciled_invoice_ids": [(4, invoice_interes.id)],
                     "partner_id": record.cliente_id.id,
-                    "amount": sum(recurso['pagos_de_interes']),
+                    "amount": sum(recurso['pagos_de_interes']) if invoice_interes.amount_residual > 0.5 else sum(recurso['pagos_de_interes']) + invoice_interes.amount_residual,
                     "date": record.fecha,
                     "journal_id": record.journal_id.id,
                     "payment_type": "inbound",
@@ -208,6 +225,7 @@ class Payments(models.Model):
     def action_confirm(self):
         for record in self:
             record.state = "validado"
+            record.number = self.env["ir.sequence"].next_by_code("payment.credit") or ("Nuevo pago")
 
     def imprimir_ticket(self):
         return self.env.ref("financial_credit.action_ticket_pago").report_action(self)

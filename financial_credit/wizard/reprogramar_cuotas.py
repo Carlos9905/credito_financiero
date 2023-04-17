@@ -5,6 +5,7 @@ from dateutil.relativedelta import relativedelta
 
 class WizardReprogramarCuotas(models.TransientModel):
     _name = "wizard.reprogramar.cuotas"
+    _description = "Wizard para reprogramar cuotas"
 
     fecha = fields.Date("Fecha", default=lambda self: datetime.now(pytz.timezone(self.env.user.tz)), help="Fecha en la que va a empezar los pagos")
     

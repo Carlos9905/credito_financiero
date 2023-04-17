@@ -64,7 +64,7 @@ class FinancialCreditAjustes(models.TransientModel):
 #Aqui iran los crons de las moras
 class CronFinancialCredit(models.Model):
     _name = "cron.financial.credit"
-
+    _description = "Cron para módulo de créditos"
     def _cron_pagos_atrasados(self):
         #Obtener la fecha en al que se esta ejecutando en el cron
         current_date = datetime.strptime(str(datetime.now().date()), "%Y-%m-%d").date()
