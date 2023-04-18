@@ -10,6 +10,7 @@ class Payments(models.Model):
     _name = "payment.credit"
     _description = "Pagos de creditos"
     _rec_name = "number"
+    _order = 'fecha desc, id desc'
     _inherit = ["mail.thread", "mail.activity.mixin"]
 
     company_id = fields.Many2one(
@@ -337,18 +338,7 @@ class Payments(models.Model):
             pagos = [0 for i in range(len(deuda_acumulada))]
             pagos_de_interes = [0 for i in range(len(deuda_acumulada))]
             pagos_de_capital = [0 for i in range(len(deuda_acumulada))]
-            """
-            for i in range(len(deuda_acumulada)):
-                if restante >= cuota_fija:
-                    deuda_acumulada[i] = 0
-                    pagos[i] = cuota_fija
-                    restante = float(Decimal(restante - cuota_fija).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
-                else:
-                    deuda_acumulada[i] = float(Decimal(deuda_acumulada[i] - restante).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
-                    pagos[i] = restante
-                    restante = 0
-                    break                   
-            """
+            
             # Saldar interes_acumulado y capital_acumulado
             for i in range(len(interes_acumulado)):
                 if monto >= interes_acumulado[i]:
@@ -373,19 +363,7 @@ class Payments(models.Model):
             restante = monto
             pagos = [0 for i in range(len(deuda_acumulada))]
             pagos_de_interes = [0 for i in range(len(deuda_acumulada))]
-            pagos_de_capital = [0 for i in range(len(deuda_acumulada))]
-            """
-            for i in range(len(deuda_acumulada)):
-                if restante >= cuota_fija:
-                    deuda_acumulada[i] = 0
-                    pagos[i] = cuota_fija
-                    restante = float(Decimal(restante - cuota_fija).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
-                else:
-                    deuda_acumulada[i] = float(Decimal(deuda_acumulada[i] - restante).quantize(Decimal(".01"), rounding=ROUND_HALF_UP))
-                    pagos[i] = restante
-                    restante = 0
-                    break
-            """               
+            pagos_de_capital = [0 for i in range(len(deuda_acumulada))]             
 
             # Saldar interes_acumulado y capital_acumulado
             for i in range(len(capital_acumulado)):

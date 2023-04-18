@@ -29,6 +29,7 @@ class FinancialCredit(models.Model):
     _name = "financial.credit"
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _description = "Credito de financiacion"
+    _order = "fecha desc, id desc"
     _rec_name = "numero"
 
     num_cuota = fields.Integer("Cuotas", related="cuota_id.numero")
@@ -59,7 +60,6 @@ class FinancialCredit(models.Model):
     numero = fields.Char(string="Orden de Crédito", default="Nuevo", readonly=True)
     numero_serie = fields.Char("Número de serie")
     telefono = fields.Char("Teléfono")
-    #url_roo_model = fields.Char("URL Record", compute="_get_url_base_model_str", store=True, copy=False)
     
     fecha = fields.Date("Fecha", default=lambda self: datetime.now(pytz.timezone(self.env.user.tz)))
     fecha_primer_pago = fields.Date("Fecha del primer pago")

@@ -20,7 +20,10 @@
             "request": "launch",
             "program": "${pathSeparator}/home/carlos/odoo-enterprise/server/odoo-bin",
             "args": [
-                "-c", "/home/carlos/odoo-enterprise/server/odoo.conf"
+                "-c", "/home/carlos/odoo-enterprise/server/odoo.conf",
+                "-d", "CF_DEV",
+                "-u", "financial_credit",
+                "--test-enable", "--log-level=test"
             ],
             "console": "integratedTerminal",
         }
