@@ -43,7 +43,7 @@
                             <field name="currency_id" invisible="1"/>
                             <field name="telefono" attrs="{'readonly':['|',('state', '=', 'pagado'),('type_doc','=','pago_credi')]}"/>
                             <field name="cliente_id" attrs="{'readonly':['|',('state', '=', 'pagado'),('type_doc','=','pago_credi')]}" required="1"/>
-                            <field name="credit_id" attrs="{'readonly':['|',('state', '=', 'pagado'),('type_doc','=','pago_credi')]}" domain="[('cliente_id','=',cliente_id),('state','=','pagos_pend')]" required="1"/>
+                            <field name="credit_id" attrs="{'readonly':['|',('state', '=', 'pagado'),('type_doc','=','pago_credi')]}" domain="[('cliente_id','=',cliente_id),('state','=','pendiente')]" required="1"/>
                             <field name="cuota_fija" widget='monetary' options="{'currency_field': 'currency_id'}"/>
                         </group>
                         <group string="Información de pago">

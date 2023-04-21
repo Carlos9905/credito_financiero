@@ -49,10 +49,10 @@ class LineasCredito(models.Model):
         for record in self:
             if record.deuda_acum == 0:
                 record.payment_state = "pagado"
-                record.payment_date = datetime.now(pytz.timezone(self.env.user.tz))
+                record.payment_date = datetime.now(pytz.timezone('America/Guatemala'))
             elif record.deuda_acum > 0 and record.deuda_acum < record.cuota_fija:
                 record.payment_state = "pago_par"
-                record.payment_date = datetime.now(pytz.timezone(self.env.user.tz))
+                record.payment_date = datetime.now(pytz.timezone('America/Guatemala'))
             elif record.deuda_acum == record.cuota_fija:
                 record.payment_state = "pendiente"
     

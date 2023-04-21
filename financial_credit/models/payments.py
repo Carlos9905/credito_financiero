@@ -171,11 +171,12 @@ class Payments(models.Model):
                 # NORMAL
                 if record.flujo_pago == 'normal':
                     datos.write({
-                        "deuda_acum": recurso['deuda_acumulada'][n],
-                        "payment_amount": recurso['pagos'][n],
-                        "capital_acum": recurso['capital_acumulado'][n],
-                        "interes_acum": recurso['interes_acumulado'][n],
-                    })
+                            "deuda_acum": recurso['deuda_acumulada'][n] if not recurso['deuda_acumulada'][n] < 0.05 else 0.00,
+                            "payment_amount": recurso['pagos'][n] if not recurso['deuda_acumulada'][n] < 0.05 else recurso['pagos'][n] + recurso['deuda_acumulada'][n],
+                            "capital_acum": recurso['capital_acumulado'][n] if not recurso['capital_acumulado'][n] < 0.05 else 0.00,
+                            "interes_acum": recurso['interes_acumulado'][n] if not recurso['interes_acumulado'][n] < 0.05 else 0.00,
+                        })
+                       
                 # INTERES
                 elif record.flujo_pago == 'interes':
                     datos.write({

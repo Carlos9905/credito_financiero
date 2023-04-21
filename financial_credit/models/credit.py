@@ -61,7 +61,7 @@ class FinancialCredit(models.Model):
     numero_serie = fields.Char("Número de serie")
     telefono = fields.Char("Teléfono")
     
-    fecha = fields.Date("Fecha", default=lambda self: datetime.now(pytz.timezone(self.env.user.tz)))
+    fecha = fields.Date("Fecha", default= datetime.now(pytz.timezone('America/Guatemala')))
     fecha_primer_pago = fields.Date("Fecha del primer pago")
 
     interes_mensual = fields.Float("TEM (%)", related="tipo_credito_id.interes", store=True, help="Tasa de interés mensual")
@@ -152,21 +152,12 @@ class FinancialCredit(models.Model):
         }
 
     def crear_pago(self):
-        #pagos = self.env["payment.credit"].create(
-            #{
-                #"credit_id": self.id,
-                #type_doc": "pago_credi",
-                #"telefono": self.telefono,
-                #"cliente_id": self.cliente_id.id,
-            #}
-        #)
         action = {
             "name": "Nuevo pago de " + self.cliente_id.name,
             "res_model": "payment.credit",
             "type": "ir.actions.act_window",
             "domain": [("credit_id", "=", self.id)],
             "view_mode": "form",
-            #res_id": pagos.id,
         }
         action["context"] = {
             "search_default_credit_id": self.id,
@@ -174,7 +165,6 @@ class FinancialCredit(models.Model):
             "default_type_doc":"pago_credi",
             "default_telefono":self.telefono,
             "default_cliente_id":self.cliente_id.id,
-            #"default_state":"borrador",
             "default_number":"Borrador"
         }
         return action
@@ -321,9 +311,6 @@ class FinancialCredit(models.Model):
         for record in self:
             # Factura para el capital desde la orden de venta
             fecha = self.env['lineas.credito'].search([("credito_id", "=", record.id)]).mapped("fecha_pago")
-            #sale_order = self.env["sale.order"].search([("credito_id", "=", record.id)])
-            #order_line = self.env["sale.order.line"].search([("order_id", "=", sale_order.id)])
-            #invoice_capital = sale_order._create_invoices()
             invoice_capital = self.env["account.move"].create(
                 {
                     "credito_id": record.id,
@@ -336,10 +323,9 @@ class FinancialCredit(models.Model):
                             0,
                             None,
                             {
-                                "product_id": record.producto_id.id,#self.env["product.product"].search([("default_code", "=", "INT_CF")]).id,
+                                "product_id": record.producto_id.id,
                                 "quantity": 1,
                                 "price_unit": record.total,
-                                #"tax_ids": [(6, 0, order_line.tax_id.ids)],
                             },
                         )
                     ],
@@ -362,8 +348,7 @@ class FinancialCredit(models.Model):
                             {
                                 "product_id": self.env["product.product"].search([("default_code", "=", "INT_CF")]).id,
                                 "quantity": 1,
-                                "price_unit": record.total_interes,
-                                #"tax_ids": [(6, 0, order_line.tax_id.ids)],
+                                "price_unit": record.total_interes
                             },
                         )
                     ],
@@ -391,7 +376,6 @@ class FinancialCredit(models.Model):
     def _get_url_base_model_str(self):
         action = self.env.ref("financial_credit.menu_action_financial_credit").id
         menu = self.env.ref("financial_credit.menu_financial_credit_root").id
-        #record.url_roo_model = "&menu_id="+str(menu)+"cids=1&action="+str(action)+"&model=financial.credit&view_type=form"
         return "&menu_id="+str(menu)+"cids=1&action="+str(action)+"&model=financial.credit&view_type=form"
 
     def verificar_documentos(self):
