@@ -164,10 +164,10 @@ class Payments(models.Model):
             recurso = self.forma_pago(monto, cuota_fija, deuda_acumulada, interes_acumulado,capital_acumulado, forma=record.flujo_pago)
             
             # Actualizar la tabla de pagos, con los datos obtenidos
-            num = lineas.filtered(lambda cuotas: cuotas.payment_state in ("pendiente", "pago_par")).mapped("numero")
+            num = lineas.filtered(lambda cuotas: cuotas.payment_state in ("pendiente", "pago_par","retrasado")).mapped("numero")
             n = 0
             for i in num:
-                datos = lineas.filtered(lambda cuotas: cuotas.payment_state in ("pendiente", "pago_par") and cuotas.numero == i)
+                datos = lineas.filtered(lambda cuotas: cuotas.payment_state in ("pendiente", "pago_par", "retrasado") and cuotas.numero == i)
                 # NORMAL
                 if record.flujo_pago == 'normal':
                     datos.write({

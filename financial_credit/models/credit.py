@@ -448,7 +448,7 @@ class FinancialCredit(models.Model):
                 [("credito_id", "=", record.id)]
             )
             pagos_pend = lineas_credito.filtered(
-                lambda p: p.payment_state in ("pendiente", "pago_par")
+                lambda p: p.payment_state in ("pendiente", "pago_par", "retrasado")
             )
             record.numero_pagos = len(pagos_pend)
 
