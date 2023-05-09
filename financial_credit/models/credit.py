@@ -74,6 +74,7 @@ class FinancialCredit(models.Model):
     total_interes = fields.Float("Total de Interés", compute="cal_total_interes", store=True, help="Intereses")
     max_financiar = fields.Float("% Maximo de Financiamiento", related="tipo_credito_id.max_financiar")
     monto_minimo_obli = fields.Float("Monto Minimo para aplicar", compute="cal_monto_minimo", store=True)
+    balance = fields.Float("Balance", compute="_get_balance", store=True)
     
     notas = fields.Text("Notas")
     descripcion = fields.Text("Descripción", compute="get_descricion_producto", store=True, readonly=False)
@@ -373,6 +374,18 @@ class FinancialCredit(models.Model):
             record.state = "pendiente"
 
     # Calculos
+    def _get_balance(self):
+        for record in self:
+            invoice_capital = self.env["account.move"].search([
+                ("credito_id", "=", record.id),
+                ("payment_reference", "=", record.numero + "(Capital)")
+            ])
+            invoice_interes = self.env["account.move"].search([
+                ("credito_id", "=", record.id),
+                ("payment_reference", "=", record.numero + "(Interes)"),
+            ])
+            record.balance = (invoice_capital.amount_residual + invoice_interes.amount_residual)
+
     def _get_url_base_model_str(self):
         action = self.env.ref("financial_credit.menu_action_financial_credit").id
         menu = self.env.ref("financial_credit.menu_financial_credit_root").id

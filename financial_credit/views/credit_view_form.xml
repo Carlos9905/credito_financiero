@@ -13,6 +13,7 @@
                 <field name="currency_id" invisible="1"/>
                 <field name="cliente_id"/>
                 <field name="producto_id"/>
+                <field name="balance" widget='monetary' options="{'currency_field': 'currency_id'}"/>
                 <field name="deuda_total" sum="Total" widget='monetary' options="{'currency_field': 'currency_id'}"/>
                 <field name="vendedor" widget="many2one_avatar_user"/>
                 <field name="frecuencia_pago" widget="badge"/>
