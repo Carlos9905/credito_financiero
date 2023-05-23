@@ -9,7 +9,6 @@ from dateutil.relativedelta import relativedelta
 # Odoo
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
-import psycopg2
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -374,18 +373,6 @@ class FinancialCredit(models.Model):
             record.state = "pendiente"
 
     # Calculos
-    def _get_balance(self):
-        for record in self:
-            invoice_capital = self.env["account.move"].search([
-                ("credito_id", "=", record.id),
-                ("payment_reference", "=", record.numero + "(Capital)")
-            ])
-            invoice_interes = self.env["account.move"].search([
-                ("credito_id", "=", record.id),
-                ("payment_reference", "=", record.numero + "(Interes)"),
-            ])
-            record.balance = (invoice_capital.amount_residual + invoice_interes.amount_residual)
-
     def _get_url_base_model_str(self):
         action = self.env.ref("financial_credit.menu_action_financial_credit").id
         menu = self.env.ref("financial_credit.menu_financial_credit_root").id

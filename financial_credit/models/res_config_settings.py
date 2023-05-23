@@ -83,3 +83,19 @@ class CronFinancialCredit(models.Model):
         fechaProxima = lineas.filtered(lambda fecha: fecha.fecha_pago == next_date)
         for fecha in fechaProxima:
             fecha.send_notification_payment()
+    
+    def _cron_update_balance(self):
+        creditos = self.env['financial.credit'].search([("state", "in", ["pendiente", "pagado","rechazado", "cancelado"]),("tipo_doc", "=", "ven")])
+        for credit in creditos:
+            invoice_capital = self.env["account.move"].search([
+                ("credito_id", "=", credit.id),
+                ("payment_reference", "=", credit.numero + "(Capital)")
+            ])
+            invoice_interes = self.env["account.move"].search([
+                ("credito_id", "=", credit.id),
+                ("payment_reference", "=", credit.numero + "(Interes)"),
+            ])
+            credit.write({
+                "balance": invoice_capital.amount_residual + invoice_interes.amount_residual
+            })
+        
