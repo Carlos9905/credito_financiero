@@ -114,7 +114,7 @@
                     <notebook>
                         <page string="Tabla de amortización">
                             <field name="lineas_pagos_ids" readonly="1" deletable="false">
-                                <tree>
+                                <tree sample="1" decoration-success="payment_state=='pagado'" decoration-warning="payment_state =='pago_par'" decoration-danger="payment_state =='retrasado'">
                                     <field name="numero" />
                                     <field name="contacto"/>
                                     <field name="cuota_inicial" width="170px" widget='monetary' options="{'currency_field': 'currency_id'}"/>
@@ -122,6 +122,7 @@
                                     <field name="capital" sum="Capital" widget='monetary' options="{'currency_field': 'currency_id'}"/>
                                     <field name="interes" sum="Interés" widget='monetary' options="{'currency_field': 'currency_id'}"/>
                                     <field name="fecha_pago"/>
+                                    <field name ="payment_state" optional="hide"/>
                                 </tree>
                             </field>
                         </page>
